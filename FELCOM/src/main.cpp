@@ -1,18 +1,20 @@
-#include <Arduino.h>
+#include <config.h>
+#include <debug.h>
 
-// put function declarations here:
-int myFunction(int, int);
+#include "display/display.h"
+#include "pong/pong.h"
 
-void setup() {
-  // put your setup code here, to run once:
-  int result = myFunction(2, 3);
+void setup()
+{
+#if DEBUG
+  loggerSetup();
+#endif
+  setupDisplay();
 }
 
-void loop() {
-  // put your main code here, to run repeatedly:
-}
+GamePacket game = {64, 32, 25, 25};
 
-// put function definitions here:
-int myFunction(int x, int y) {
-  return x + y;
+void loop()
+{
+  drawGame(&game);
 }
