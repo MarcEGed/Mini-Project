@@ -1,3 +1,8 @@
+## Problems Encountered
+1. Build failing due to `ModuleNotFoundError: No module named 'intelhex'`
+    - `source ~/.platformio/penv/bin/activate`
+    - `pip install intelhex`
+
 ## Code Guidelines
 
 - Includes within the `src` directory should use `" "`

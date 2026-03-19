@@ -1,14 +1,18 @@
 
 #include <debug.h>
+#include <stdio.h>
 
 void LOG(const char *type, const char *msg, va_list args) {
   // do stuff
 #if DEBUG
+  char logBuffer[256];
+  vsnprintf(logBuffer, sizeof(logBuffer), msg, args);
+  
   DEBUG_SERIAL.print(millis());
   DEBUG_SERIAL.print(" ");
   DEBUG_SERIAL.print(type);
   DEBUG_SERIAL.print(": ");
-  DEBUG_SERIAL.vprintf(msg, args);
+  DEBUG_SERIAL.print(logBuffer);
   DEBUG_SERIAL.println("");
   DEBUG_SERIAL.flush();
 #endif
