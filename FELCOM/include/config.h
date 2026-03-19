@@ -16,5 +16,7 @@
 #define I2C_ADDR 0x3C
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
+#define SCREEN_SDA_PIN 21
+#define SCREEN_SCL_PIN 22
 
 #endif // CONFIG_H
