@@ -19,4 +19,15 @@
 #define SCREEN_SDA_PIN 21
 #define SCREEN_SCL_PIN 22
 
+// Rotary encoder config
+#define ROTARY_ENCODER_CLK_PIN 32
+#define ROTARY_ENCODER_DT_PIN 35
+#define ROTARY_ENCODER_SW_PIN 33
+
+// Optional compile-time ISR hooks for encoder direction events.
+// Define these to function names available at compile time, for example:
+#define ROTARY_ENCODER_CW_CALLBACK rotaryEncoderCW
+#define ROTARY_ENCODER_CCW_CALLBACK rotaryEncoderCCW
+#define ROTARY_ENCODER_SW_CALLBACK rotaryEncoderButtonPressed
+
 #endif // CONFIG_H

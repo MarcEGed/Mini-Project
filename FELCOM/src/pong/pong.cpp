@@ -2,22 +2,58 @@
 
 #include "display/display.h"
 
+void initializeGame(PongGame *g)
+{
+    g->isRunning = true;
+    g->scoreLeft = 0;
+    g->scoreRight = 0;
+    g->ballMovingRight = true;
+    g->ballX = PongGame::kInitialBallX;
+    g->ballY = PongGame::kInitialBallY;
+    g->paddleLeft = PongGame::kInitialPaddleY;
+    g->paddleRight = PongGame::kInitialPaddleY;
+}
 
-void drawGame(GamePacket *game)
+void drawGame(PongGame *game)
 {
 
     display.clearDisplay();
 
-    display.drawLine(0, 0, 127, 0, 1);
-    display.drawLine(0, 63, 127, 63, 1);
+    display.drawFastHLine(PongGame::kBoundaryLeft, PongGame::kBorderTopY, PongGame::kPlayfieldWidth, 1);
+    display.drawFastHLine(PongGame::kBoundaryLeft, PongGame::kBorderBottomY, PongGame::kPlayfieldWidth, 1);
 
-    // TODO: Explore the drawFastHLine
-    display.drawLine(64, 2, 64, 61, 1);
+    display.drawFastVLine(PongGame::kCenterX, PongGame::kBoundaryTop, PongGame::kPlayfieldHeight, 1);
 
-    display.drawLine(1, game->paddleLeft, 1, game->paddleLeft + 15, 1);
-    display.drawLine(126, game->paddleRight, 126, game->paddleRight + 15, 1);
+    display.drawFastVLine(PongGame::kLeftPaddleX, game->paddleLeft, PongGame::kPaddleHeight + 1, 1);
+    display.drawFastVLine(PongGame::kRightPaddleX, game->paddleRight, PongGame::kPaddleHeight + 1, 1);
 
     display.drawCircle(game->ballX, game->ballY, 1, 1);
 
     display.display();
+}
+
+void moveLeftPaddle(PongGame *game, int delta)
+{
+    game->paddleLeft += delta;
+    if (game->paddleLeft < PongGame::kBoundaryTop)
+    {
+        game->paddleLeft = PongGame::kBoundaryTop;
+    }
+    else if (game->paddleLeft + PongGame::kPaddleHeight > PongGame::kBoundaryBottom)
+    {
+        game->paddleLeft = PongGame::kBoundaryBottom - PongGame::kPaddleHeight;
+    }
+}
+
+void moveRightPaddle(PongGame *game, int delta)
+{
+    game->paddleRight += delta;
+    if (game->paddleRight < PongGame::kBoundaryTop)
+    {
+        game->paddleRight = PongGame::kBoundaryTop;
+    }
+    else if (game->paddleRight + PongGame::kPaddleHeight > PongGame::kBoundaryBottom)
+    {
+        game->paddleRight = PongGame::kBoundaryBottom - PongGame::kPaddleHeight;
+    }
 }
