@@ -4,9 +4,12 @@
 #include "encoders/encoders.h"
 #include "display/display.h"
 #include "pong/pong.h"
+#include "transceiver/transceiver.h"
 
 PongGame game;
 bool leftPaddleSelected = false;
+
+// transceiver radio;
 
 void rotaryEncoderCW()
 {
@@ -45,9 +48,16 @@ void setup()
   initializeGame(&game);
   setupDisplay();
   setupRotaryEncoder();
+  // radio.setup();
+  // radio.setMode(RECEIVE);
+  // pinMode(2, OUTPUT);
 }
 
 void loop()
 {
+  // delay(500);
+  // digitalWrite(2, HIGH);
+  // delay(500);
+  // digitalWrite(2, LOW);
   drawGame(&game);
 }
