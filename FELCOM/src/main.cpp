@@ -5,6 +5,7 @@
 #include "display/display.h"
 #include "pong/pong.h"
 #include "transceiver/transceiver.h"
+#include "joystick/joystick.h"
 
 PongGame game;
 bool leftPaddleSelected = false;
@@ -47,7 +48,14 @@ void setup()
 #endif
   initializeGame(&game);
   setupDisplay();
-  setupRotaryEncoder();
+
+  //input choice
+  #if USE_ROTARY_ENCODER
+    setupRotaryEncoder();
+  #else
+    joystickInit();
+  #endif
+
   // radio.setup();
   // radio.setMode(RECEIVE);
   // pinMode(2, OUTPUT);
