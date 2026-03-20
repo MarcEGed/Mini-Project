@@ -14,4 +14,4 @@
 - [ ] Transcevier should be a class maybe?
 - [ ] Test the Display code
 - [ ] Test pong
-- [ ] include statements are acting goofy, should check that, fixable by modifying platformio.ini
+- [ ] ~~include statements are acting goofy, should check that, fixable by modifying platformio.ini~~ never mind, my download resolved and everything works
