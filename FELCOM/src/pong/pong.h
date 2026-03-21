@@ -2,6 +2,7 @@
 #define PONG_H
 
 #include <stdbool.h>
+
 struct PongGame
 {
     static constexpr int kBoundaryTop = 2;
@@ -32,35 +33,10 @@ struct PongGame
     int paddleLeft;
     int paddleRight;
 
-    void moveBall()
-    {
-        if (!isRunning)
-        {
-            return;
-        }
-
-        if (ballMovingRight)
-        {
-            ballX++;
-        }
-        else
-        {
-            ballX--;
-        }
-
-        if (ballX <= kBoundaryLeft)
-        {
-            scoreRight++;
-            // resetBall();
-        }
-        else if (ballX >= kBoundaryRight)
-        {
-            scoreLeft++;
-            // resetBall();
-        }
-    }
+    void moveBall();
 };
 
+// TODO: consider making these member functions of PongGame instead of free functions
 void initializeGame(PongGame *g);
 void drawGame(PongGame *game);
 void moveLeftPaddle(PongGame *game, int delta);

@@ -2,7 +2,6 @@
 #define ENCODERS_H
 
 #include <config.h>
-#include <debug.h>
 
 void setupRotaryEncoder();
 

@@ -14,9 +14,9 @@
 // IMPORTANT: for debug purposes
 // 1 for rotary encoder input
 // 0 for joystick input
-#define USE_ROTARY_ENCODER 1
+#define USE_ROTARY_ENCODER 0
 
-#if USE_ROTARY_ENCODER
+#if defined(USE_ROTARY_ENCODER) && USE_ROTARY_ENCODER
     // Rotary encoder config
     #define ROTARY_ENCODER_CLK_PIN 32
     #define ROTARY_ENCODER_DT_PIN 35
@@ -28,10 +28,13 @@
     #define ROTARY_ENCODER_CCW_CALLBACK rotaryEncoderCCW
     #define ROTARY_ENCODER_SW_CALLBACK rotaryEncoderButtonPressed
 
-#else 
+#else
+    // Joystick config
     #define JOYSTICK_Y_PIN  35
     #define JOYSTICK_SW_PIN 33
+    #define JOYSTICK_DEADZONE 200
 #endif
+
 
 // Screen config
 // I2C addr 0x3D (for the 128x64)

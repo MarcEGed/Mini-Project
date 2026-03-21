@@ -1,6 +1,34 @@
 #include "pong.h"
 
-#include "display/display.h"
+#include <display.h>
+
+void PongGame::moveBall()
+{
+    if (!isRunning)
+    {
+        return;
+    }
+
+    if (ballMovingRight)
+    {
+        ballX++;
+    }
+    else
+    {
+        ballX--;
+    }
+
+    if (ballX <= kBoundaryLeft)
+    {
+        scoreRight++;
+        // resetBall();
+    }
+    else if (ballX >= kBoundaryRight)
+    {
+        scoreLeft++;
+        // resetBall();
+    }
+}
 
 void initializeGame(PongGame *g)
 {

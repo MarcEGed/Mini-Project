@@ -1,5 +1,8 @@
 #include "encoders.h"
 
+#include <Arduino.h>
+#include <debug.h>
+
 // Variables to hold the current and last encoder position
 volatile int encoderPos = 0;
 volatile int lastEncoderPos = 0;
@@ -16,6 +19,7 @@ void ARDUINO_ISR_ATTR encoderButtonPressed();
 
 void setupRotaryEncoder()
 {
+#if defined(USE_ROTARY_ENCODER) && USE_ROTARY_ENCODER
     pinMode(ROTARY_ENCODER_CLK_PIN, INPUT_PULLUP);
     pinMode(ROTARY_ENCODER_DT_PIN, INPUT_PULLUP);
     pinMode(ROTARY_ENCODER_SW_PIN, INPUT_PULLUP);
@@ -25,11 +29,13 @@ void setupRotaryEncoder()
 
     // Read the initial state of CLK
     lastCLK = digitalRead(ROTARY_ENCODER_CLK_PIN);
+#endif
 }
 
 // Interrupt service routine for reading the encoder
 void ARDUINO_ISR_ATTR readEncoder()
 {
+#if defined(USE_ROTARY_ENCODER) && USE_ROTARY_ENCODER
     currentCLK = digitalRead(ROTARY_ENCODER_CLK_PIN);
     // If the current state of CLK is different from the last state
     // then a pulse occurred
@@ -53,12 +59,15 @@ void ARDUINO_ISR_ATTR readEncoder()
 #endif
         }
     }
+
     // Update lastCLK with the current state for the next pulse detection
     lastCLK = currentCLK;
+#endif
 }
 
 void ARDUINO_ISR_ATTR encoderButtonPressed()
 {
+#if defined(USE_ROTARY_ENCODER) && USE_ROTARY_ENCODER
     const unsigned long nowMs = millis();
     if ((nowMs - lastButtonInterruptMs) < BUTTON_DEBOUNCE_MS)
     {
@@ -68,5 +77,6 @@ void ARDUINO_ISR_ATTR encoderButtonPressed()
     lastButtonInterruptMs = nowMs;
 #if defined(ROTARY_ENCODER_SW_CALLBACK)
     ROTARY_ENCODER_SW_CALLBACK();
+#endif
 #endif
 }

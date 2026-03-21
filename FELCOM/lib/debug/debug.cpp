@@ -1,13 +1,16 @@
 
-#include <debug.h>
+#include "debug.h"
+
+#include <config.h>
 #include <stdio.h>
 
-void LOG(const char *type, const char *msg, va_list args) {
+void LOG(const char *type, const char *msg, va_list args)
+{
   // do stuff
 #if DEBUG
   char logBuffer[256];
   vsnprintf(logBuffer, sizeof(logBuffer), msg, args);
-  
+
   DEBUG_SERIAL.print(millis());
   DEBUG_SERIAL.print(" ");
   DEBUG_SERIAL.print(type);
@@ -18,7 +21,8 @@ void LOG(const char *type, const char *msg, va_list args) {
 #endif
 }
 
-void LOG_ERROR(const char *msg, ...) {
+void LOG_ERROR(const char *msg, ...)
+{
   // do stuff
 #if DEBUG
   va_list args;
@@ -28,7 +32,8 @@ void LOG_ERROR(const char *msg, ...) {
 #endif
 }
 
-void LOG_INFO(const char *msg, ...) {
+void LOG_INFO(const char *msg, ...)
+{
 #if DEBUG
   va_list args;
   va_start(args, msg);
@@ -38,17 +43,19 @@ void LOG_INFO(const char *msg, ...) {
 #endif
 }
 
-void LOG_BLANK(const char *msg, ...) {
-  #if DEBUG
-    va_list args;
-    va_start(args, msg);
-    LOG("", msg, args);
-    va_end(args);
-  
-  #endif
-  }
+void LOG_BLANK(const char *msg, ...)
+{
+#if DEBUG
+  va_list args;
+  va_start(args, msg);
+  LOG("", msg, args);
+  va_end(args);
 
-void loggerSetup() {
+#endif
+}
+
+void loggerSetup()
+{
 #if DEBUG
   DEBUG_SERIAL.begin(DEBUG_BAUD);
 #endif

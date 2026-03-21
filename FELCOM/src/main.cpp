@@ -1,11 +1,11 @@
 #include <config.h>
 #include <debug.h>
+#include <encoders.h>
+#include <display.h>
+#include <transceiver.h>
+#include <joystick.h>
 
-#include "encoders/encoders.h"
-#include "display/display.h"
 #include "pong/pong.h"
-#include "transceiver/transceiver.h"
-#include "joystick/joystick.h"
 
 PongGame game;
 bool leftPaddleSelected = false;
@@ -49,12 +49,12 @@ void setup()
   initializeGame(&game);
   setupDisplay();
 
-  //input choice
-  #if USE_ROTARY_ENCODER
-    setupRotaryEncoder();
-  #else
-    joystickInit();
-  #endif
+// input choice
+#if defined(USE_ROTARY_ENCODER) && USE_ROTARY_ENCODER
+  setupRotaryEncoder();
+#else
+  joystickInit();
+#endif
 
   // radio.setup();
   // radio.setMode(RECEIVE);
