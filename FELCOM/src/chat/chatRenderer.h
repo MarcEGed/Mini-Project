@@ -4,6 +4,6 @@
 #include "chatInput.h"
 #include "chatLog.h"
 
-void renderChat(const chatLog& log, const chatInput& input);
+void renderChat(chatLog& log, chatInput& input);
 
 #endif

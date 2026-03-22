@@ -29,11 +29,10 @@ bool transceiver::write(const void *data, uint8_t len){
     return radio->write(data, len);
 }
 
-void transceiver::read(void *data, uint8_t len){
-    if (mode != RECEIVE){
-        return;
-    }
-    if (radio->available()){
-        radio->read(data, len);
-    }
+bool transceiver::read(void *data, uint8_t len){
+    if (mode != RECEIVE) return false;
+    if (!radio->available()) return false;
+    
+    radio->read(data, len);
+    return true;
 }

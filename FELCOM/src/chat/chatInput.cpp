@@ -63,9 +63,9 @@ bool chatInput::hasMessage(){
     return messageReady;
 }
 
-void chatInput::popMessage(Message& out, uint8_t senderID, const char* name){
+void chatInput::popMessage(Message& out, uint8_t senderID, char name){
     out.senderId = senderID;
-    out.senderName = name[0];
+    out.senderName = name;
     out.timestampMs = millis();
     strncpy(out.text, buffer, MSG_MAX_TEXT);
     out.text[MSG_MAX_TEXT - 1] = '\0';

@@ -7,7 +7,7 @@
 //   row  48-55 : divider + ">" prompt
 //   rows 56-63 : current input buffer
 
-void renderChat(chatLog& log, const chatInput& input){
+void renderChat(chatLog& log, chatInput& input){
     display.clearDisplay();
     display.setTextSize(1);    //6x8 px per char → 21 chars wide
     display.setTextColor(SSD1306_WHITE);

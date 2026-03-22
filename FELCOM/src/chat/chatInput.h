@@ -17,7 +17,7 @@ struct chatInput{
     void tickJoystick(int8_t dirY, bool btnPressed);
 
     bool hasMessage(); //returns true when a message is ready
-    void popMessage(Message& out, uint8_t senderID, const char* name); //fills msg, call after hasMessage()
+    void popMessage(Message& out, uint8_t senderID, char name); //fills msg, call after hasMessage()
 
 private:
     bool    messageReady;

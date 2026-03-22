@@ -4,15 +4,13 @@
 #include <RF24.h>
 #include <stdbool.h>
 
-enum transceiverMode
-{
+enum transceiverMode{
     TRANSMIT,
     RECEIVE
 };
 
 // TODO: research RF24::startConstCarrier.
-struct transceiver
-{
+struct transceiver{
     RF24 *radio;
 
     transceiverMode mode;
@@ -23,7 +21,7 @@ struct transceiver
     void setup();
     void setMode(transceiverMode newMode);
     bool write(const void *data, uint8_t len);
-    void read(void *data, uint8_t len);
+    bool read(void *data, uint8_t len);
 };
 
 #endif // TRANSCEIVER_H
