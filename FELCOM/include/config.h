@@ -3,8 +3,8 @@
 #include <Arduino.h>
 
 //NODE config 
-#define SENDER_ID 0x01 //change for each device flashed
-#define NODE_NAME 'A'  //in chat name, also change for each
+#define SENDER_ID 0x02 //change for each device flashed
+#define NODE_NAME 'B'  //in chat name, also change for each
 
 // Debug config
 #define DEBUG 1
@@ -18,7 +18,7 @@
 // IMPORTANT: for debug purposes
 // 1 for rotary encoder input
 // 0 for joystick input
-#define USE_ROTARY_ENCODER 1
+#define USE_ROTARY_ENCODER 0
 
 #if defined(USE_ROTARY_ENCODER) && USE_ROTARY_ENCODER
     // Rotary encoder config

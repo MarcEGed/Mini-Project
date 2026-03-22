@@ -14,9 +14,15 @@
 - All macros even if they are meant to be constants should be defined in `config.h` this makes it easier to change them if necessary, and make it easier to debug/get an idea of what's going on under the hood
 
 ## Progress
-
-- [ ] Transcevier should be a ~~class~~ struct
+### Completed
 - [x] Test the Display code
+- [X] ~~include statements are acting goofy, should check that, fixable by modifying platformio.ini~~ never mind, my download resolved and everything works
+- [X] Texting works (tested with 2 nodes/devices, not more)
 - [x] Test pong
-    - [ ] Make moving ball
-- [ ] ~~include statements are acting goofy, should check that, fixable by modifying platformio.ini~~ never mind, my download resolved and everything works
+
+### Next Up
+- [ ] Make the rotary encoder less of a pain in the ass
+- [ ] Clean up all unecessary includes from texting related code
+- [ ] Encode text messaging
+- [ ] Transcevier should be a ~~class~~ struct (marc note: does it matter?)
+- [ ] Make moving ball pong
