@@ -35,13 +35,14 @@ void setup() {
 }
 
 void loop() {
-    // 1. Poll input
     int8_t dir     = inputDirectionY();
     bool   btnDown = inputButtonPressed();
 
+    //LOG_INFO("adc: %d", analogRead(JOYSTICK_Y_PIN));
     Input.tickJoystick(dir, btnDown);
+    
 
-    // 2. Send if message is ready
+    //Send if message is ready
     if (Input.hasMessage()) {
         Message msg;
         Input.popMessage(msg, SENDER_ID, NODE_NAME);
@@ -59,9 +60,22 @@ void loop() {
         }*/
     }
 
-    // 3. Receive incoming
+    //Receive incoming
     Message incoming;
     xcvr.read(&incoming, sizeof(Message));
+    if (xcvr.read(&incoming, sizeof(Message))) {
+    LOG_INFO("Raw packet - sender: 0x%02X name: %c text: %s", 
+             incoming.senderId, 
+             incoming.senderName, 
+             incoming.text);
+    
+      if (incoming.senderId != SENDER_ID) {
+          Log.push(incoming);
+          LOG_INFO("Pushed to log");
+      } else {
+          LOG_INFO("Ignored own packet");
+      }
+  }
 
     // xcvr.read() only fills incoming when radio->available() is true,
     // so check sender_id to confirm a real packet landed
@@ -70,7 +84,7 @@ void loop() {
         Log.push(incoming);
     }
 
-    // 4. Render
+    // Render
     renderChat(Log, Input);
 
     delay(30);

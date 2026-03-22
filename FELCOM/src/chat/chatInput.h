@@ -22,6 +22,7 @@ struct chatInput{
 private:
     bool    messageReady;
     uint32_t lastMoveMs;
+    int8_t   lastDirY; 
     static const uint32_t REPEAT_DELAY_MS = 200;
 
     void advance(int8_t dir);

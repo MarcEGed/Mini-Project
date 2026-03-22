@@ -62,11 +62,37 @@ void inputInit() {
 }
 
 int8_t inputDirectionY() {
-    int raw      = analogRead(JOYSTICK_Y_PIN); //0-4095
-    int centered = raw - 2048;
-    //LOG_INFO("Joystick raw: %d centered: %d", raw, centered);
-    if (centered >  JOYSTICK_DEADZONE) return  1;
-    if (centered < -JOYSTICK_DEADZONE) return -1;
+    int    raw      = analogRead(JOYSTICK_Y_PIN);
+    int    centered = raw - JOYSTICK_Y_CENTER;
+    int8_t dir      = 0;
+
+    if (centered >  JOYSTICK_DEADZONE) dir =  1;
+    if (centered < -JOYSTICK_DEADZONE) dir = -1;
+
+    static int8_t    lastDir    = 0;
+    static uint32_t  lastMoveMs = 0;
+    static const uint32_t HOLD_REPEAT_MS = 150; //tune to taste
+
+    uint32_t now = millis();
+
+    if (dir == 0) {
+        lastDir = 0; //reset when joystick is centered
+        return 0;
+    }
+
+    // only emit a tick if direction changed or enough time passed
+    if (dir != lastDir || (now - lastMoveMs) >= HOLD_REPEAT_MS) {
+        lastDir    = dir;
+        lastMoveMs = now;
+
+        static int8_t lastLogDir = 0;
+        if (dir != lastLogDir) {
+            //LOG_INFO("Joystick dir changed: %d (raw: %d)", dir, raw);
+            lastLogDir = dir;
+        }
+
+        return dir;
+    }
     return 0;
 }
 

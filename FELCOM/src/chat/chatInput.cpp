@@ -12,15 +12,14 @@ void chatInput::init(){
     currentChar = CHARSET[0];
     messageReady = false;
     lastMoveMs = 0;
+    lastDirY = 0;
 }
 
 void chatInput::tickJoystick(int8_t dirY, bool btnPressed){
-    uint32_t now = millis();
-    if (dirY != 0 && (now - lastMoveMs > REPEAT_DELAY_MS)){
+    if (dirY != 0 && lastDirY == 0){
         advance(dirY);
-        lastMoveMs = now;
     }
-
+    lastDirY = dirY;
     if (btnPressed){
         commit();
     }
