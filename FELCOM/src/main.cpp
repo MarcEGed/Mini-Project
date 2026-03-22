@@ -7,12 +7,12 @@
 
 #include "pong/pong.h"
 
-PongGame game;
-bool leftPaddleSelected = false;
+//PongGame game;
+//bool leftPaddleSelected = false;
 
 // transceiver radio;
 
-void rotaryEncoderCW()
+/*void rotaryEncoderCW()
 {
   if (leftPaddleSelected)
   {
@@ -68,4 +68,6 @@ void loop()
   // delay(500);
   // digitalWrite(2, LOW);
   drawGame(&game);
-}
+}*/
+
+

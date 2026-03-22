@@ -2,8 +2,7 @@
 
 #include <config.h>
 
-void transceiver::setup()
-{
+void transceiver::setup(){
     radio = new RF24(NRF24L01_CE_PIN, NRF24L01_CSN_PIN);
     radio->begin();
     radio->setPALevel(powerLevel);
@@ -14,36 +13,27 @@ void transceiver::setup()
     radio->setRetries(0, 0);
 }
 
-void transceiver::setMode(transceiverMode newMode)
-{
+void transceiver::setMode(transceiverMode newMode){
     mode = newMode;
-    if (newMode == TRANSMIT)
-    {
+    if (newMode == TRANSMIT){
         radio->stopListening();
-    }
-    else
-    {
+    }else{
         radio->startListening();
     }
 }
 
-bool transceiver::write(const void *data, uint8_t len)
-{
-    if (mode != TRANSMIT)
-    {
+bool transceiver::write(const void *data, uint8_t len){
+    if (mode != TRANSMIT){
         return false;
     }
     return radio->write(data, len);
 }
 
-void transceiver::read(void *data, uint8_t len)
-{
-    if (mode != RECEIVE)
-    {
+void transceiver::read(void *data, uint8_t len){
+    if (mode != RECEIVE){
         return;
     }
-    if (radio->available())
-    {
+    if (radio->available()){
         radio->read(data, len);
     }
 }

@@ -2,6 +2,10 @@
 #define CONFIG_H
 #include <Arduino.h>
 
+//NODE config 
+#define SENDER_ID 0x01 //change for each device flashed
+#define NODE_NAME 'A'  //in chat name, also change for each
+
 // Debug config
 #define DEBUG 1
 #define DEBUG_SERIAL Serial
