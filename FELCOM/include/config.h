@@ -1,7 +1,6 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 #include <Arduino.h>
-#include <debug.h>
 
 //NODE config 
 #define SENDER_ID 0x01 //change for each device flashed

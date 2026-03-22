@@ -3,6 +3,8 @@
     - `source ~/.platformio/penv/bin/activate`
     - `pip install intelhex`
 
+    Windows fix: `~/.platformio/penv/Scripts/pip install intelhex (same but for dummies)`
+
 ## Code Guidelines
 
 - Includes within the `src` directory should use `" "`

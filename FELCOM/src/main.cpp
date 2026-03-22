@@ -40,34 +40,32 @@ void rotaryEncoderButtonPressed()
 {
   leftPaddleSelected = !leftPaddleSelected;
 }
+*/
+void setup(){
+  /*#if DEBUG
+    loggerSetup();
+  #endif
+    initializeGame(&game);
+    setupDisplay();
 
-void setup()
-{
-#if DEBUG
-  loggerSetup();
-#endif
-  initializeGame(&game);
-  setupDisplay();
+  // input choice
+  #if defined(USE_ROTARY_ENCODER) && USE_ROTARY_ENCODER
+    setupRotaryEncoder();
+  #else
+    joystickInit();
+  #endif
 
-// input choice
-#if defined(USE_ROTARY_ENCODER) && USE_ROTARY_ENCODER
-  setupRotaryEncoder();
-#else
-  joystickInit();
-#endif
+    // radio.setup();
+    // radio.setMode(RECEIVE);
+    // pinMode(2, OUTPUT);*/
+  }
 
-  // radio.setup();
-  // radio.setMode(RECEIVE);
-  // pinMode(2, OUTPUT);
-}
-
-void loop()
-{
+void loop(){
   // delay(500);
   // digitalWrite(2, HIGH);
   // delay(500);
   // digitalWrite(2, LOW);
-  drawGame(&game);
-}*/
+  //drawGame(&game);
+}
 
 
