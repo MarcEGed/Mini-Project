@@ -4,7 +4,7 @@
 
 //NODE config 
 #define SENDER_ID 0x02 //change for each device flashed
-#define NODE_NAME 'B'  //in chat name, also change for each
+#define NODE_NAME 'b'  //in chat name, also change for each
 
 // Debug config
 #define DEBUG 1
@@ -14,6 +14,15 @@
 // NRF24L01 config
 #define NRF24L01_CE_PIN 4
 #define NRF24L01_CSN_PIN 5
+
+// Chat Config
+#define MAX_INPUT_LENGTH 25 //1 byte space for termination character, might be needed
+#define LOG_SIZE 10 //max messages kept
+#define MSG_MAX_TEXT 25  //1 (id) + 1 (name[2]) + 4 (ts) + 25 (text) + 1 spare = 32
+
+// Encryption Config
+#define XOR_KEY {0xAA, 0x3F, 0x12, 0x55} //same keys see the same stuff, different keys see encryption
+#define XOR_KEY_LEN 4
 
 // IMPORTANT: for debug purposes
 // 1 for rotary encoder input

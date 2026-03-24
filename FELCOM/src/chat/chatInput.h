@@ -2,11 +2,11 @@
 #define CHATINPUT_H
 
 #include "message.h"
+#include <config.h>
 #include <stdint.h>
 #include <stdbool.h>
 
 //rotate through control, input through button press
-#define MAX_INPUT_LENGTH 25 //1 byte space for termination character, might be needed
 
 struct chatInput{
     char   buffer[MAX_INPUT_LENGTH + 1];
