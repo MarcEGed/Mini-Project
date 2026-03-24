@@ -8,12 +8,13 @@
 #include "chat\chatLog.h"
 #include "chat\chatRenderer.h"
 #include "transceiver.h"
+#include "encryption.h"
 
 #include "pong/pong.h"
 
 transceiver xcvr;
-chatLog     Log;
-chatInput   Input;
+chatLog     msgLog;
+chatInput   msgInput;
 
 void setup() {
     loggerSetup();
@@ -28,8 +29,8 @@ void setup() {
     xcvr.setMode(RECEIVE);
     //LOG_INFO("Transceiver ready, listening on channel %d", xcvr.channel);
 
-    Log.init();
-    Input.init();
+    msgLog.init();
+    msgInput.init();
 
     //LOG_INFO("Boot complete");
 }
@@ -38,13 +39,15 @@ void loop() {
     int8_t dir     = inputDirectionY();
     bool   btnDown = inputButtonPressed();
 
-    Input.tickJoystick(dir, btnDown);
+    msgInput.tickJoystick(dir, btnDown);
 
     // send
-    if (Input.hasMessage()) {
+    if (msgInput.hasMessage()) {
         Message msg;
-        Input.popMessage(msg, SENDER_ID, NODE_NAME);
-        Log.push(msg);
+        msgInput.popMessage(msg, SENDER_ID, NODE_NAME);
+        msgLog.push(msg);
+
+        encrypt(msg.text, sizeof(msg.text));
 
         xcvr.setMode(TRANSMIT);
         bool ok = xcvr.write(&msg, sizeof(Message));
@@ -57,12 +60,15 @@ void loop() {
     // receive — one read, one push
     Message incoming;
     if (xcvr.read(&incoming, sizeof(Message))) {
+        
+        decrypt(incoming.text, sizeof(incoming.text));
+
         LOG_INFO("Packet from 0x%02X %c: %s", incoming.senderId, incoming.senderName, incoming.text);
         if (incoming.senderId != SENDER_ID) {
-            Log.push(incoming);
+            msgLog.push(incoming);
         }
     }
 
-    renderChat(Log, Input);
+    renderChat(msgLog, msgInput);
     delay(30);
 }

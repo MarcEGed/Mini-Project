@@ -1,8 +1,8 @@
 #ifndef CHATLOG_H
 #define CHATLOG_H
 #include <message.h>
+#include <config.h>
 
-#define LOG_SIZE 10 //max messages kept
 
 //chatLog handles data like a ring buffer
 //not for manyake purposes, but ig it's more efficient
