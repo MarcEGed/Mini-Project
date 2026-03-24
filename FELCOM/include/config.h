@@ -18,7 +18,7 @@
 // IMPORTANT: for debug purposes
 // 1 for rotary encoder input
 // 0 for joystick input
-#define USE_ROTARY_ENCODER 0
+#define USE_ROTARY_ENCODER 1
 
 #if defined(USE_ROTARY_ENCODER) && USE_ROTARY_ENCODER
     // Rotary encoder config
