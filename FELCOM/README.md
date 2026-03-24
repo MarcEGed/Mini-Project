@@ -34,7 +34,8 @@
 - Auto Acknowledgement, Auto Retransmission, and CRC can be disabled.
 - Our data is stored in the Payload. 
 ## TMRh20 Library
-- ` setAddressWidth()`
+[Link](https://nrf24.github.io/RF24/classRF24.html) to the Library docs.
+- `setAddressWidth()`
 - `stopListening( const uint8_t * txAddress)` sets the TX addr
     - `write( const void * buf, uint8_t len )`
 - `openReadingPipe(1, addr)`
@@ -43,8 +44,8 @@
         - `read()` reads the data
             - `getPayloadSize()`
             - `getDynamicPayloadSize()`
-            > [!IMPORTANT]
-            > A payload is not removed from the RX FIFO until it's entire length (or more) is fetched using `read()`.
+> [!IMPORTANT]
+> A payload is not removed from the RX FIFO until it's entire length (or more) is fetched using `read()`.
 - `printPrettyDetails()`
 - `testCarrier()` Useful to check for interference on the current channel.
 - `testRPD()` whether a signal (carrier or otherwise) greater than or equal to -64dBm is present on the channel
