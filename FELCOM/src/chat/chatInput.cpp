@@ -1,5 +1,6 @@
 #include "chatInput.h"
 
+#include <Arduino.h>
 #include <config.h>
 #include <string.h>
 

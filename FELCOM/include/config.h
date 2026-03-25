@@ -1,6 +1,6 @@
 #ifndef CONFIG_H
 #define CONFIG_H
-#include <Arduino.h>
+#include <stdint.h>
 
 // NODE config
 // change for each device flashed
