@@ -1,5 +1,6 @@
 #include "debug.h"
 
+#include <Arduino.h>
 #include <config.h>
 #include <stdio.h>
 
