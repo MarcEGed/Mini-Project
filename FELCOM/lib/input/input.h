@@ -1,12 +1,14 @@
 #ifndef INPUT_H
 #define INPUT_H
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 void inputInit();
 
-int8_t inputDirectionY(); //-1, 0  or 1
-bool inputButtonPressed(); //debounced button check
+//-1, 0  or 1
+int8_t inputDirectionY();
+// debounced button check
+bool inputButtonPressed();
 
 #endif

@@ -10,4 +10,4 @@ void setupDAC(uint8_t pin = 25, float frequencyHz = 440.0f);
 // Call frequently from loop() to keep waveform output running.
 void updateDACSine();
 
-#endif // DAC_H
+#endif  // DAC_H

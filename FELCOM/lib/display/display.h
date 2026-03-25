@@ -7,4 +7,4 @@ extern Adafruit_SSD1306 display;
 
 void setupDisplay();
 
-#endif // DISPLAY_H
+#endif  // DISPLAY_H

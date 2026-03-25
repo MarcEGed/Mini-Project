@@ -1,33 +1,36 @@
 #ifndef CHATINPUT_H
 #define CHATINPUT_H
 
-#include "message.h"
 #include <config.h>
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
-//rotate through control, input through button press
+#include "message.h"
 
-struct chatInput{
-    char   buffer[MAX_INPUT_LENGTH + 1];
+// rotate through control, input through button press
+
+struct chatInput {
+    char buffer[MAX_INPUT_LENGTH + 1];
     uint8_t length;
-    char   currentChar; //character under the cursor
+    // character under the cursor
+    char currentChar;
 
     void init();
     void tickJoystick(int8_t dirY, bool btnPressed);
 
-    bool hasMessage(); //returns true when a message is ready
-    void popMessage(Message& out, uint8_t senderID, char name); //fills msg, call after hasMessage()
+    // returns true when a message is ready
+    bool hasMessage();
+    // fills msg, call after hasMessage()
+    void popMessage(Message& out, uint8_t senderID, char name);
 
-private:
-    bool    messageReady;
+   private:
+    bool messageReady;
     uint32_t lastMoveMs;
-    int8_t   lastDirY; 
+    int8_t lastDirY;
     static const uint32_t REPEAT_DELAY_MS = 200;
 
     void advance(int8_t dir);
     void commit();
 };
-
 
 #endif

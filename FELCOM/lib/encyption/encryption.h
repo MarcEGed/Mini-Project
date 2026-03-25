@@ -6,5 +6,4 @@
 void encrypt(char* text, size_t len);
 void decrypt(char* text, size_t len);
 
-
 #endif

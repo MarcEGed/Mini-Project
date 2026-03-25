@@ -3,8 +3,7 @@
 
 #include <stdbool.h>
 
-struct PongGame
-{
+struct PongGame {
     static constexpr int kBoundaryTop = 2;
     static constexpr int kBoundaryBottom = 61;
     static constexpr int kBoundaryLeft = 0;
@@ -36,10 +35,11 @@ struct PongGame
     void moveBall();
 };
 
-// TODO: consider making these member functions of PongGame instead of free functions
-void initializeGame(PongGame *g);
-void drawGame(PongGame *game);
-void moveLeftPaddle(PongGame *game, int delta);
-void moveRightPaddle(PongGame *game, int delta);
+// TODO: consider making these member functions of PongGame instead of free
+// functions
+void initializeGame(PongGame* g);
+void drawGame(PongGame* game);
+void moveLeftPaddle(PongGame* game, int delta);
+void moveRightPaddle(PongGame* game, int delta);
 
-#endif // PONG_H
+#endif  // PONG_H

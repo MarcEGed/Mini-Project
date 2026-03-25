@@ -1,18 +1,21 @@
 #include "chatRenderer.h"
-#include "display.h"
+
 #include <string.h>
+
+#include "display.h"
 
 // current design:
 //   rows 0-47  : last 3 messages (16px each)
 //   row  48-55 : divider + ">" prompt
 //   rows 56-63 : current input buffer
 
-void renderChat(chatLog& log, chatInput& input){
+void renderChat(chatLog& log, chatInput& input) {
     display.clearDisplay();
     display.setTextSize(1);
     display.setTextColor(SSD1306_WHITE);
 
-    uint8_t lines = min((uint8_t)3, log.size()); // only draw what exists
+    // only draw what exists
+    uint8_t lines = min((uint8_t)3, log.size());
 
     for (uint8_t i = 0; i < lines; i++) {
         const Message* m = log.get(lines - 1 - i);
@@ -29,7 +32,8 @@ void renderChat(chatLog& log, chatInput& input){
     if (input.currentChar == '\x7F') {
         snprintf(inputLine, sizeof(inputLine), ">%s[OK]", input.buffer);
     } else {
-        snprintf(inputLine, sizeof(inputLine), ">%s[%c]", input.buffer, input.currentChar);
+        snprintf(inputLine, sizeof(inputLine), ">%s[%c]", input.buffer,
+                 input.currentChar);
     }
     display.print(inputLine);
 
