@@ -35,7 +35,7 @@ const uint8_t MENU_ART_BITMAP[] PROGMEM = {
     0x52, 0x7F, 0xFF, 0xFF, 0xFF, 0xFF, 0xF5, 0x50};
 const uint8_t BRAILLE_DOT_ROWS = 4;
 
-MenuModeSelection g_selection = MenuPing;
+MenuModeSelection g_selection = MenuPong;
 
 void renderMenu() {
     display.clearDisplay();
@@ -46,21 +46,22 @@ void renderMenu() {
                        MENU_ART_HEIGHT, SSD1306_WHITE);
 
     uint8_t selectorY = MENU_ART_HEIGHT + 2;
-    int bias = 10;
     display.setTextSize(1);
     display.setTextColor(SSD1306_WHITE);
-    display.setCursor(bias + 0, selectorY);
-    display.print(g_selection == MenuPing ? "> PONG" : "  PONG");
-    display.setCursor(bias + 64, selectorY);
+    display.setCursor(10, selectorY);
+    display.print(g_selection == MenuPong ? "> PONG" : "  PONG");
+    display.setCursor(74, selectorY);
     display.print(g_selection == MenuChat ? "> CHAT" : "  CHAT");
 
     display.display();
 }
 
 void menuUIInitDisplay() {
-    g_selection = MenuPing;
+    g_selection = MenuPong;
     renderMenu();
 }
+
+void menuUIUpdate() { renderMenu(); }
 
 bool menuUIUpdateSelection(int8_t dirY) {
     // return true if we should update the display (selection changed)
@@ -68,7 +69,7 @@ bool menuUIUpdateSelection(int8_t dirY) {
         return false;
     }
 
-    g_selection = (g_selection == MenuPing) ? MenuChat : MenuPing;
+    g_selection = (g_selection == MenuPong) ? MenuChat : MenuPong;
     return true;
 }
 

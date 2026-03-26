@@ -53,7 +53,7 @@ void loop() {
                 appUI.onMenuSelectionChanged();
             }
             if (btnDown) {
-                appUI.setMode(menuUIGetSelection() == MenuPing ? UIMode::Pong
+                appUI.setMode(menuUIGetSelection() == MenuPong ? UIMode::Pong
                                                                : UIMode::Chat);
             }
             break;

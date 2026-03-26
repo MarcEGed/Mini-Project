@@ -29,7 +29,7 @@ void ui::setMode(UIMode newMode) {
 void ui::update(UIUpdateType domain, uint8_t detail) {
     switch (mode) {
         case UIMode::Menu: {
-            menuUIInitDisplay();
+            menuUIUpdate();
             break;
         }
         case UIMode::Chat: {

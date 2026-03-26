@@ -4,11 +4,13 @@
 #include <stdint.h>
 
 enum MenuModeSelection : uint8_t {
-    MenuPing = 0,
+    MenuPong = 0,
     MenuChat = 1,
 };
 
 void menuUIInitDisplay();
+void menuUIUpdate();
+
 bool menuUIUpdateSelection(int8_t dirY);
 MenuModeSelection menuUIGetSelection();
 
