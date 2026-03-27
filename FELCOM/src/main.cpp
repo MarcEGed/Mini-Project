@@ -91,6 +91,7 @@ void loop() {
                          incoming.senderName, incoming.text);
                 if (incoming.senderId != SENDER_ID) {
                     chat.log.push(incoming);
+                    appUI.onChatMessageAdded();
                 }
             }
 
@@ -102,7 +103,7 @@ void loop() {
     }
 
     // Keep this empty unless active section needs periodic redraws.
-    // delay(20);
+    delay(30);
 }
 
 
