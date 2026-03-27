@@ -9,6 +9,8 @@ void transceiver::setup(){
     radio->begin();
     radio->setPALevel(powerLevel);
     radio->setDataRate(dataRate);
+    radio->setPALevel(NRF24L01_POWER_LEVEL);
+    radio->setDataRate(NRF24L01_DATA_RATE);
     radio->setChannel(channel);
     radio->setPayloadSize(sizeof(Message));
 

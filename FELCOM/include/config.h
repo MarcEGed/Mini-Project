@@ -6,7 +6,7 @@
 // change for each device flashed
 #define SENDER_ID 0x02
 // in chat name, also change for each
-#define NODE_NAME 'b'
+#define NODE_NAME 'L'
 
 // Debug config
 #define DEBUG 1
@@ -16,6 +16,8 @@
 // NRF24L01 config
 #define NRF24L01_CE_PIN 4
 #define NRF24L01_CSN_PIN 5
+#define NRF24L01_POWER_LEVEL RF24_PA_MAX
+#define NRF24L01_DATA_RATE RF24_250KBPS
 
 // Chat Config
 // 1 byte space for termination character, might be needed
@@ -33,7 +35,7 @@
 // IMPORTANT: for debug purposes
 // 1 for rotary encoder input
 // 0 for joystick input
-#define USE_ROTARY_ENCODER 1
+#define USE_ROTARY_ENCODER 0
 
 #if defined(USE_ROTARY_ENCODER) && USE_ROTARY_ENCODER
 // Rotary encoder config
