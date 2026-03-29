@@ -4,14 +4,20 @@
 
 // NODE config
 // change for each device flashed
-#define SENDER_ID 0x01
+#define SENDER_ID 0x02
 // in chat name, also change for each
-#define NODE_NAME 'M'
+#define NODE_NAME 'C'
 
 // Debug config
 #define DEBUG 1
 #define DEBUG_SERIAL Serial
 #define DEBUG_BAUD 9600
+
+// Interference Testing Mode
+#define TEST_PATTERN        0xAB
+#define RF_TEST_TX 0
+#define RF_TEST_PACKET_SIZE 32
+#define RF_TEST_DELAY_MS    1000
 
 // NRF24L01 config
 #define NRF24L01_CE_PIN 4
