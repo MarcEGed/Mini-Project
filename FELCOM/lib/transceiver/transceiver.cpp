@@ -14,6 +14,8 @@ void transceiver::setup(){
     radio->setChannel(channel);
     radio->setPayloadSize(sizeof(Message));
 
+    radio->disableCRC();
+
     radio->setAutoAck(false);
     radio->setRetries(0, 0);
 

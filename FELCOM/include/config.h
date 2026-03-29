@@ -4,9 +4,9 @@
 
 // NODE config
 // change for each device flashed
-#define SENDER_ID 0x02
+#define SENDER_ID 0x01
 // in chat name, also change for each
-#define NODE_NAME 'L'
+#define NODE_NAME 'M'
 
 // Debug config
 #define DEBUG 1
