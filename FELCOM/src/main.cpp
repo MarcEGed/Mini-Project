@@ -7,6 +7,7 @@
 #include "chat/chatLog.h"
 #include "chat/chatInput.h"
 #include "menu/menu.h"
+#include "pong/pong.h"
 
 transceiver xcvr;
 chatLog     Log;
@@ -17,11 +18,13 @@ void setup() {
     setupDisplay();
     inputInit();
     xcvr.setup();
-    menuSetup();
+    //menuSetup();
+    pongSetup();
 }
 
 void loop() {
-    menuLoop();
+    //menuLoop();
+    pongLoop();
 }
 
 //===================================

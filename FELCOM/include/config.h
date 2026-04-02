@@ -6,7 +6,7 @@
 // change for each device flashed
 #define SENDER_ID 0x02
 // in chat name, also change for each
-#define NODE_NAME 'C'
+#define NODE_NAME 'B'
 
 // Debug config
 #define DEBUG 1
