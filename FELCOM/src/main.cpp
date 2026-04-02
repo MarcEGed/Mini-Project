@@ -1,6 +1,35 @@
 #include <config.h>
 #include <debug.h>
 
+#include "display.h"
+#include "input.h"
+#include "transceiver.h"
+#include "chat/chatLog.h"
+#include "chat/chatInput.h"
+#include "menu/menu.h"
+
+transceiver xcvr;
+chatLog     Log;
+chatInput   Input;
+
+void setup() {
+    loggerSetup();
+    setupDisplay();
+    inputInit();
+    xcvr.setup();
+    menuSetup();
+}
+
+void loop() {
+    menuLoop();
+}
+
+//===================================
+//===============BER MODE++++++++++++
+//==================================
+/*#include <config.h>
+#include <debug.h>
+
 #include "chat/chatInput.h"
 #include "chat/chatLog.h"
 #include "chat/chatRenderer.h"
@@ -23,7 +52,7 @@ void setup(){
 
 void loop(){
     rfTestLoop(xcvr);
-}
+}*/
 
 
 //==================================
