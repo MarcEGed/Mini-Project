@@ -7,8 +7,6 @@
 void transceiver::setup(){
     radio = new RF24(NRF24L01_CE_PIN, NRF24L01_CSN_PIN);
     radio->begin();
-    radio->setPALevel(powerLevel);
-    radio->setDataRate(dataRate);
     radio->setPALevel(NRF24L01_POWER_LEVEL);
     radio->setDataRate(NRF24L01_DATA_RATE);
     radio->setChannel(channel);
