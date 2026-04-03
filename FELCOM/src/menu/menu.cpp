@@ -7,6 +7,7 @@
 #include "chat/chatLog.h"
 #include "chat/chatRenderer.h"
 #include "message.h"
+#include "pong/pong.h"
 #include <config.h>
 #include <debug.h>
 
@@ -17,8 +18,8 @@ extern chatInput   Input;
 static appMode   currentMode   = MODE_MENU;
 static uint8_t   menuSelection = 0;
 
-static const char* menuItems[]  = { "Chat", "RF Test" };
-static const uint8_t MENU_COUNT = 2;
+static const char* menuItems[]  = { "Chat", "RF Test", "Pong"};
+static const uint8_t MENU_COUNT = 3;
 
 // ── menu ─────────────────────────────────────────────────────────────────────
 
@@ -60,9 +61,12 @@ static void tickMenu() {
             Log.init();
             Input.init();
             xcvr.setMode(RECEIVE);
-        } else {
+        } else if (menuSelection == 1) {
             currentMode = MODE_RFTEST;
             rfTestSetup(xcvr);
+        } else if (menuSelection == 2) {
+            currentMode = MODE_PONG;
+            pongSetup();
         }
         return;
     }
@@ -120,6 +124,10 @@ void menuLoop() {
             break;
         case MODE_RFTEST:
             rfTestLoop(xcvr);
+            delay(30);
+            break;
+        case MODE_PONG:
+            pongLoop();
             delay(30);
             break;
     }

@@ -18,13 +18,13 @@ void setup() {
     setupDisplay();
     inputInit();
     xcvr.setup();
-    //menuSetup();
-    pongSetup();
+    menuSetup();
+    //pongSetup();
 }
 
 void loop() {
-    //menuLoop();
-    pongLoop();
+    menuLoop();
+    //pongLoop();
 }
 
 //===================================
