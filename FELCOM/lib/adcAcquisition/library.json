@@ -1,0 +1,21 @@
+{
+  "name": "adcAcquisition",
+  "version": "1.0.0",
+  "description": "ADC acquisition module with dual buffering for microphone input",
+  "keywords": "adc, buffer, audio, timing",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "authors": [
+    {
+      "name": "FELCOM Project"
+    }
+  ],
+  "license": "MIT",
+  "frameworks": "arduino",
+  "platforms": "*",
+  "build": {
+    "srcFilter": ["+<*>", "-<example>"]
+  }
+}

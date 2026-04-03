@@ -1,0 +1,21 @@
+{
+  "name": "audioReceiver",
+  "version": "1.0.0",
+  "description": "Audio receiver - receives RF24 packets and outputs to DAC",
+  "keywords": "audio, rf24, dac",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "authors": [
+    {
+      "name": "FELCOM Project"
+    }
+  ],
+  "license": "MIT",
+  "frameworks": "arduino",
+  "platforms": "*",
+  "build": {
+    "srcFilter": ["+<*>", "-<example>"]
+  }
+}

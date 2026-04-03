@@ -1,0 +1,21 @@
+{
+  "name": "audioSender",
+  "version": "1.0.0",
+  "description": "Audio sender - acquires microphone from ADC and transmits via RF24",
+  "keywords": "audio, rf24, adc",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "authors": [
+    {
+      "name": "FELCOM Project"
+    }
+  ],
+  "license": "MIT",
+  "frameworks": "arduino",
+  "platforms": "*",
+  "build": {
+    "srcFilter": ["+<*>", "-<example>"]
+  }
+}

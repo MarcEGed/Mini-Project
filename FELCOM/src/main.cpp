@@ -11,6 +11,8 @@
 #include "pong/pong.h"
 #include "transceiver.h"
 #include "test/testMode.h"
+#include "test/audioTest.h"
+#include "test/buttonToneTest.h"
 
 transceiver xcvr;
 
@@ -18,9 +20,24 @@ void setup(){
     xcvr.setup();
     xcvr.setMode(RECEIVE);
     setupDisplay();
-    rfTestSetup(xcvr);
+    
+    // Uncomment to run RF test
+    // rfTestSetup(xcvr);
+    
+    // Run audio test with microphone streaming
+    //audioTestSetup();
+    
+    // Uncomment to run button tone test
+    buttonToneTestSetup();
 }
 
 void loop(){
-    rfTestLoop(xcvr);
+    // Uncomment to run RF test
+    // rfTestLoop(xcvr);
+    
+    // Run audio test
+    audioTestLoop();
+    
+    // Uncomment to run button tone test
+    //buttonToneTestLoop();
 }
