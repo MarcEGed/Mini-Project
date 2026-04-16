@@ -14,8 +14,6 @@ struct transceiver{
     RF24 *radio;
 
     transceiverMode mode;
-    rf24_pa_dbm_e powerLevel = RF24_PA_LOW;
-    rf24_datarate_e dataRate = RF24_1MBPS;
     uint8_t channel = 125;
 
     void setup();
