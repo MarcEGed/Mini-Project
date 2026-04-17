@@ -61,7 +61,7 @@ static void renderRx(uint32_t received) {
     display.clearDisplay();
     display.setTextColor(SSD1306_WHITE);
 
-    display.setTextSize(2);
+    display.setTextSize(1);
     display.setCursor(0, 0);
     display.print("RX MODE");
 
