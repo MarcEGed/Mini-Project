@@ -1,15 +1,16 @@
 #include <config.h>
 #include <debug.h>
+#include <display.h>
+#include <encryption.h>
+#include <input.h>
 #include <string.h>
+#include <transceiver.h>
 
 #include "chat/chat.h"
-#include "display.h"
-#include "encryption.h"
-#include "input.h"
 #include "message.h"
 #include "pong/pong.h"
-#include "transceiver.h"
 #include "ui/MenuUI.h"
+#include "ui/PongUI.h"
 #include "ui/ui.h"
 
 transceiver xcvr;
@@ -19,10 +20,10 @@ ui appUI;
 
 void setup() {
     loggerSetup();
-    //LOG_INFO("Booting node %c (id=0x%02X)", NODE_NAME, SENDER_ID);
+    // LOG_INFO("Booting node %c (id=0x%02X)", NODE_NAME, SENDER_ID);
 
     setupDisplay();
-    //LOG_INFO("Display ready");
+    // LOG_INFO("Display ready");
 
     inputInit();
 
@@ -97,15 +98,17 @@ void loop() {
 
             break;
         case UIMode::Pong:
-            return;
+            if (pongUITickInput(&pong, dir, btnDown)) {
+                appUI.onPongStateChanged();
+            }
+            break;
         default:
             return;
     }
 
     // Keep this empty unless active section needs periodic redraws.
-    delay(30);
+    // delay(30);
 }
-
 
 //===================================
 //===============BER MODE++++++++++++
@@ -137,9 +140,8 @@ void loop(){
     rfTestLoop(xcvr);
 }*/
 
-
 //==================================
-//this is the main.cpp that made texting work
+// this is the main.cpp that made texting work
 //==================================
 
 /*#include <config.h>
@@ -201,8 +203,8 @@ void loop() {
     // receive — one read, one push
     Message incoming;
     if (xcvr.read(&incoming, sizeof(Message))) {
-        LOG_INFO("Packet from 0x%02X %c: %s", incoming.senderId, incoming.senderName, incoming.text);
-        if (incoming.senderId != SENDER_ID) {
+        LOG_INFO("Packet from 0x%02X %c: %s", incoming.senderId,
+incoming.senderName, incoming.text); if (incoming.senderId != SENDER_ID) {
             Log.push(incoming);
         }
     }

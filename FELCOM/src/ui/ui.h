@@ -29,6 +29,7 @@ struct ui {
     void onChatInputChanged();
     void onChatMessageAdded();
     void onMenuSelectionChanged();
+    void onPongStateChanged();
 };
 
 #endif

@@ -85,4 +85,9 @@ const uint8_t USABLE_CHANNELS[NRF24L01_MAX_CHANNEL_INDEX + 1] = {
 #define SCREEN_SDA_PIN 21
 #define SCREEN_SCL_PIN 22
 
+// Pong config
+#define PONG_SCORE_TO_WIN 7
+#define PONG_TICK_MS 30
+#define PONG_TX_INTERVAL_MS 15
+
 #endif  // CONFIG_H

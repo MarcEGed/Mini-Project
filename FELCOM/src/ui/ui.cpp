@@ -43,7 +43,7 @@ void ui::update(UIUpdateType domain, uint8_t detail) {
             break;
         }
         case UIMode::Pong: {
-            pongUIUpdate(pongGame, PongMainScreen);
+            pongUIUpdate(pongGame, PongAutoScreen);
             break;
         }
         default:
@@ -73,4 +73,12 @@ void ui::onMenuSelectionChanged() {
     }
 
     update(UIUpdateType::Full);
+}
+
+void ui::onPongStateChanged() {
+    if (mode != UIMode::Pong) {
+        return;
+    }
+
+    update(UIUpdateType::Full, static_cast<uint8_t>(PongAutoScreen));
 }
