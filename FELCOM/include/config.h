@@ -15,7 +15,6 @@
 
 // Interference Testing Mode
 #define TEST_PATTERN        0xAB
-#define RF_TEST_TX          0
 #define RF_TEST_PACKET_SIZE 32
 #define RF_TEST_DELAY_MS    1000
 

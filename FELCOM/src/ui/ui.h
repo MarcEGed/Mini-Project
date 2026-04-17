@@ -10,6 +10,7 @@ enum UIMode : uint8_t {
     Menu = 0,
     Chat = 1,
     Pong = 2,
+    RFTest = 3,
 };
 
 enum UIUpdateType : uint8_t {
@@ -30,6 +31,7 @@ struct ui {
     void onChatMessageAdded();
     void onMenuSelectionChanged();
     void onPongStateChanged();
+    void onRFTestStateChanged();
 };
 
 #endif

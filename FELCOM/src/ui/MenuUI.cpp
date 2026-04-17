@@ -34,6 +34,7 @@ const uint8_t MENU_ART_BITMAP[] PROGMEM = {
     0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 const uint8_t BRAILLE_DOT_ROWS = 4;
+constexpr uint8_t MENU_SELECTION_COUNT = 3;
 
 MenuModeSelection g_selection = MenuPong;
 
@@ -48,10 +49,12 @@ void renderMenu() {
     uint8_t selectorY = MENU_ART_HEIGHT + 2;
     display.setTextSize(1);
     display.setTextColor(SSD1306_WHITE);
-    display.setCursor(10, selectorY);
-    display.print(g_selection == MenuPong ? "> PONG" : "  PONG");
-    display.setCursor(74, selectorY);
-    display.print(g_selection == MenuChat ? "> CHAT" : "  CHAT");
+    display.setCursor(2, selectorY);
+    display.print(g_selection == MenuPong ? ">PONG" : " PONG");
+    display.setCursor(46, selectorY);
+    display.print(g_selection == MenuChat ? ">CHAT" : " CHAT");
+    display.setCursor(84, selectorY);
+    display.print(g_selection == MenuRFTest ? ">RFTEST" : " RFTEST");
 
     display.display();
 }
@@ -69,7 +72,13 @@ bool menuUIUpdateSelection(int8_t dirY) {
         return false;
     }
 
-    g_selection = (g_selection == MenuPong) ? MenuChat : MenuPong;
+    uint8_t index = static_cast<uint8_t>(g_selection);
+    if (dirY > 0) {
+        index = (index + 1) % MENU_SELECTION_COUNT;
+    } else {
+        index = (index + MENU_SELECTION_COUNT - 1) % MENU_SELECTION_COUNT;
+    }
+    g_selection = static_cast<MenuModeSelection>(index);
     return true;
 }
 

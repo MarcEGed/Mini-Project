@@ -9,8 +9,10 @@
 #include "chat/chat.h"
 #include "message.h"
 #include "pong/pong.h"
+#include "rf_test/testMode.h"
 #include "ui/MenuUI.h"
 #include "ui/PongUI.h"
+#include "ui/RFTestUI.h"
 #include "ui/ui.h"
 
 transceiver xcvr;
@@ -54,8 +56,14 @@ void loop() {
                 appUI.onMenuSelectionChanged();
             }
             if (btnDown) {
-                appUI.setMode(menuUIGetSelection() == MenuPong ? UIMode::Pong
-                                                               : UIMode::Chat);
+                MenuModeSelection selection = menuUIGetSelection();
+                if (selection == MenuPong) {
+                    appUI.setMode(UIMode::Pong);
+                } else if (selection == MenuChat) {
+                    appUI.setMode(UIMode::Chat);
+                } else {
+                    appUI.setMode(UIMode::RFTest);
+                }
             }
             break;
         case UIMode::Chat:
@@ -100,6 +108,11 @@ void loop() {
         case UIMode::Pong:
             if (pongUITickInput(&pong, dir, btnDown)) {
                 appUI.onPongStateChanged();
+            }
+            break;
+        case UIMode::RFTest:
+            if (rfTestUITickInput(xcvr, dir, btnDown, millis())) {
+                appUI.onRFTestStateChanged();
             }
             break;
         default:
