@@ -4,9 +4,9 @@
 
 // NODE config
 // change for each device flashed
-#define SENDER_ID 0x02
+#define SENDER_ID 0x01
 // in chat name, also change for each
-#define NODE_NAME 'b'
+#define NODE_NAME 'a'
 
 // Debug config
 #define DEBUG 1
@@ -15,7 +15,7 @@
 
 // Interference Testing Mode
 #define TEST_PATTERN        0xAB
-#define RF_TEST_TX          0
+#define RF_TEST_TX          1
 #define RF_TEST_PACKET_SIZE 32
 #define RF_TEST_DELAY_MS    1000
 
@@ -31,7 +31,7 @@
 // max messages kept
 #define LOG_SIZE 10
 // 1 (id) + 1 (name[2]) + 4 (ts) + 25 (text) + 1 spare = 32
-#define MSG_MAX_TEXT 25
+#define MSG_MAX_TEXT 22
 
 // Encryption Config
 // same keys see the same stuff, different keys see encryption
