@@ -10,5 +10,7 @@ void inputInit();
 int8_t inputDirectionY();
 // debounced button check
 bool inputButtonPressed();
+//back button
+bool inputBackPressed();
 
 #endif
