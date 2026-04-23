@@ -4,9 +4,9 @@
 
 // NODE config
 // change for each device flashed
-#define SENDER_ID 0x01
+#define SENDER_ID 0x02
 // in chat name, also change for each
-#define NODE_NAME 'a'
+#define NODE_NAME 'b'
 
 // Debug config
 #define DEBUG 1
@@ -15,7 +15,7 @@
 
 // Interference Testing Mode
 #define TEST_PATTERN        0xAB
-#define RF_TEST_TX          1
+#define RF_TEST_TX          0
 #define RF_TEST_PACKET_SIZE 32
 #define RF_TEST_DELAY_MS    1000
 
