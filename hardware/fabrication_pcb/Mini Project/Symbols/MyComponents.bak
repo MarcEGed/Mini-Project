@@ -1070,8 +1070,8 @@
 				)
 			)
 		)
-		(property "Footprint" ""
-			(at 0 0 0)
+		(property "Footprint" "MyFootprints:NRF24L01_PA_LNA"
+			(at 0 8.128 0)
 			(effects
 				(font
 					(size 1.27 1.27)

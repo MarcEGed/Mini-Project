@@ -1,4 +1,4 @@
-24751596171080297
+24744384141519166
 Audio_Module
 Reverb_BTDR-1H
 Digital Reverberation Unit, http://www.belton.co.kr/inc/downfile.php?seq=17&file=pdf (footprint from http://www.uk-electronic.de/PDF/BTDR-1.pdf)
@@ -2568,6 +2568,13 @@ speaker CUI
 0
 2
 2
+COM_Joystick
+XDCR_COM-09032
+
+
+0
+14
+14
 Calibration_Scale
 Gauge_10mm_Type1_CopperTop
 Gauge, Massstab, 10mm, CopperTop, Type 1,
@@ -57252,13 +57259,6 @@ One digit LED 7 segment SA39-11 SC39-11 SA39-12 SC39-12
 0
 10
 10
-ESP
-ESP32_DEVKIT_V1_30PIN
-
-
-0
-30
-29
 Ferrite_THT
 LairdTech_28C0236-0JW-10
 Ferrite, vertical, LairdTech 28C0236-0JW-10, https://assets.lairdtech.com/home/brandworld/files/28C0236-0JW-10.pdf, JW Miller core https://www.bourns.com/products/magnetic-products/j.w.-miller-through-hole-ferrite-beads-emi-filters
@@ -64651,6 +64651,13 @@ solder jumper open
 0
 3
 3
+KiCad Extras
+CUI_MJ-3502N
+
+
+0
+3
+3
 LED_SMD
 LED-APA102-2020
 http://www.led-color.com/upload/201604/APA102-2020%20SMD%20LED.pdf
@@ -65855,6 +65862,13 @@ Yellow 5381 Series LED
 0
 2
 2
+MODULE_DFR0299
+MODULE_DFR0299
+
+
+0
+16
+16
 Module
 A20_OLINUXINO_LIME2
 A20 Olinuxino LIME2, 1.2GHz, 512-1024MB RAM, Micro-SD, NAND or eMMC, 1000Mbit Ethernet
@@ -68522,62 +68536,6 @@ threaded screw
 0
 4
 1
-MyFootprints
-0.25W_8OHM_SPEAKER
-
-
-0
-2
-2
-MyFootprints
-ESP32_DevKit_V1_30pin
-
-
-0
-30
-30
-MyFootprints
-KY023_Joystick_MODULE
-
-
-0
-5
-5
-MyFootprints
-LM386_MODULE
-
-
-0
-6
-6
-MyFootprints
-MAX4466_MODULE
-
-
-0
-3
-3
-MyFootprints
-NRF24L01_PA_LNA
-
-
-0
-8
-8
-MyFootprints
-OLED_128x64_I2C
-
-
-0
-4
-4
-MyFootprints
-Untitled
-
-
-0
-8
-8
 NetTie
 NetTie-2_SMD_Pad0.5mm
 Net tie, 2 pin, 0.5mm square SMD pads
@@ -91258,6 +91216,13 @@ rotary encoder illuminated switch vertical
 0
 9
 8
+SH1106
+MODULE_DM-OLED096-636
+
+
+0
+8
+8
 Sensor
 ASAIR_AM2302_P2.54mm_Lead2.75mm_TabDown
 Temperature and humidity module, http://akizukidenshi.com/download/ds/aosong/AM2302.pdf
@@ -99574,3 +99539,10 @@ Varistor VF
 0
 2
 2
+myownExtra
+CUI_MJ-3502N
+
+
+0
+3
+3

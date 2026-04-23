@@ -45,8 +45,8 @@
 
 #if defined(USE_BUTTONS) && USE_BUTTONS
 //button inputs
-#define BTN_UP_PIN     26
-#define BTN_DOWN_PIN   25
+#define BTN_UP_PIN     32
+#define BTN_DOWN_PIN   33
 #define BTN_SELECT_PIN 27
 #define BTN_BACK_PIN   14
 
