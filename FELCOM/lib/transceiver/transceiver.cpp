@@ -13,8 +13,9 @@ void transceiver::setup() {
     radio->setPayloadSize(sizeof(Message));
     // radio->enableDynamicPayloads();
 
-    radio->setAutoAck(false);
-    radio->setRetries(0, 0);
+    radio->setAutoAck(true);
+    // wait 0*250us + 250us before each retry
+    radio->setRetries(0, 3);
     radio->disableCRC();
 
     radio->openWritingPipe(PHY_ADDRESSES[NRF24L01_PHY_ADDR]);
