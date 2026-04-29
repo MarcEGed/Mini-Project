@@ -4,50 +4,92 @@
 #include <config.h>
 
 // ════════════════════════════════════════════════════════════════════════════
-// ROTARY ENCODER
+// buttons
 // ════════════════════════════════════════════════════════════════════════════
-#if defined(USE_ROTARY_ENCODER) && USE_ROTARY_ENCODER
-static uint8_t lastClk = HIGH;
-static uint8_t lastBtn = HIGH;
-static uint32_t lastBtnMs = 0;
+// ======================================================
+// BUTTON MODE
+// ======================================================
+#if defined(USE_BUTTONS) && USE_BUTTONS
+
 static const uint32_t DEBOUNCE_MS = 40;
+static const uint32_t HOLD_REPEAT_MS = 150;
+
+static uint32_t lastUpMs = 0;
+static uint32_t lastDownMs = 0;
+static uint32_t lastSelectMs = 0;
+static uint32_t lastBackMs = 0;
+
+static uint8_t lastSelectState = HIGH;
+static uint8_t lastBackState   = HIGH;
+
+static uint32_t lastMoveMs = 0;
+static int8_t lastDir = 0;
 
 void inputInit() {
-    pinMode(ROTARY_ENCODER_CLK_PIN, INPUT_PULLUP);
-    pinMode(ROTARY_ENCODER_DT_PIN, INPUT_PULLUP);
-    pinMode(ROTARY_ENCODER_SW_PIN, INPUT_PULLUP);
-    lastClk = digitalRead(ROTARY_ENCODER_CLK_PIN);
-    lastBtn = digitalRead(ROTARY_ENCODER_SW_PIN);
-    // LOG_INFO("Input: rotary encoder ready");
+    pinMode(BTN_UP_PIN, INPUT_PULLUP);
+    pinMode(BTN_DOWN_PIN, INPUT_PULLUP);
+    pinMode(BTN_SELECT_PIN, INPUT_PULLUP);
+    pinMode(BTN_BACK_PIN, INPUT_PULLUP);
 }
 
 int8_t inputDirectionY() {
-    uint8_t clk = digitalRead(ROTARY_ENCODER_CLK_PIN);
-    int8_t dir = 0;
+    uint32_t now = millis();
 
-    if (clk != lastClk && clk == LOW) {
-        dir = (digitalRead(ROTARY_ENCODER_DT_PIN) == HIGH) ? 1 : -1;
-        // LOG_INFO("Encoder dir: %d", dir);
+    bool up = (digitalRead(BTN_UP_PIN) == LOW);
+    bool down = (digitalRead(BTN_DOWN_PIN) == LOW);
+
+    int8_t dir = 0;
+    if (up) dir = 1;
+    else if (down) dir = -1;
+
+    if (dir == 0) {
+        lastDir = 0;
+        return 0;
     }
-    lastClk = clk;
-    return dir;
+
+    if (dir != lastDir || (now - lastMoveMs) >= HOLD_REPEAT_MS) {
+        if ((dir == 1 && (now - lastUpMs) > DEBOUNCE_MS) ||
+            (dir == -1 && (now - lastDownMs) > DEBOUNCE_MS)) {
+
+            lastMoveMs = now;
+            lastDir = dir;
+
+            if (dir == 1) lastUpMs = now;
+            if (dir == -1) lastDownMs = now;
+
+            return dir;
+        }
+    }
+
+    return 0;
+}
+
+bool inputButtonPressed() {
+    uint8_t current = digitalRead(BTN_SELECT_PIN);
+
+    if (lastSelectState == HIGH && current == LOW) {
+        lastSelectState = current;
+        return true;   // 🔥 trigger ONLY once on press
+    }
+
+    lastSelectState = current;
+    return false;
+}
+
+bool inputBackPressed() {
+    uint8_t current = digitalRead(BTN_BACK_PIN);
+
+    if (lastBackState == HIGH && current == LOW) {
+        lastBackState = current;
+        return true;   // 🔥 trigger ONLY once on press
+    }
+
+    lastBackState = current;
+    return false;
 }
 
 int8_t inputDirectionYContinuous() { return inputDirectionY(); }
 
-bool inputButtonPressed() {
-    uint32_t now = millis();
-    uint8_t state = digitalRead(ROTARY_ENCODER_SW_PIN);
-
-    if (lastBtn == HIGH && state == LOW && (now - lastBtnMs) > DEBOUNCE_MS) {
-        lastBtnMs = now;
-        lastBtn = state;
-        // LOG_INFO("Encoder button pressed");
-        return true;
-    }
-    lastBtn = state;
-    return false;
-}
 
 // ════════════════════════════════════════════════════════════════════════════
 // JOYSTICK

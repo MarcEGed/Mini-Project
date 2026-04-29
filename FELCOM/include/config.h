@@ -4,9 +4,9 @@
 
 // NODE config
 // change for each device flashed
-#define SENDER_ID 0x02
+#define SENDER_ID 0x01
 // in chat name, also change for each
-#define NODE_NAME 'x'
+#define NODE_NAME 'b'
 
 // Debug config
 #define DEBUG 1
@@ -54,21 +54,16 @@ const uint8_t USABLE_CHANNELS[NRF24L01_MAX_CHANNEL_INDEX + 1] = {
 // IMPORTANT: for debug purposes
 // 1 for rotary encoder input
 // 0 for joystick input
-#define USE_ROTARY_ENCODER 0
+#define USE_BUTTONS 0
 
-#if defined(USE_ROTARY_ENCODER) && USE_ROTARY_ENCODER
-// Rotary encoder config
-#define ROTARY_ENCODER_CLK_PIN 32
-#define ROTARY_ENCODER_DT_PIN 35
-#define ROTARY_ENCODER_SW_PIN 33
-
-// Optional compile-time ISR hooks for encoder direction events.
-// Define these to function names available at compile time, for example:
-#define ROTARY_ENCODER_CW_CALLBACK rotaryEncoderCW
-#define ROTARY_ENCODER_CCW_CALLBACK rotaryEncoderCCW
-#define ROTARY_ENCODER_SW_CALLBACK rotaryEncoderButtonPressed
-
+#if defined(USE_BUTTONS) && USE_BUTTONS
+//button inputs
+#define BTN_UP_PIN     32
+#define BTN_DOWN_PIN   33
+#define BTN_SELECT_PIN 27
+#define BTN_BACK_PIN   14
 #else
+
 // Joystick config
 #define JOYSTICK_Y_PIN 35
 #define JOYSTICK_SW_PIN 33
