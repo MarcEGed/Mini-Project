@@ -66,6 +66,8 @@ void loop() {
                     appUI.setMode(UIMode::Pong);
                 } else if (selection == MenuChat) {
                     appUI.setMode(UIMode::Chat);
+                } else if (selection == MenuAbout) {
+                    appUI.setMode(UIMode::About);
                 } else {
                     appUI.setMode(UIMode::RFTest);
                 }
@@ -119,6 +121,9 @@ void loop() {
             if (rfTestUITickInput(xcvr, dir, btnDown, millis())) {
                 appUI.onRFTestStateChanged();
             }
+            break;
+        case UIMode::About:
+            // About has no active input right now besides back button
             break;
         default:
             return;

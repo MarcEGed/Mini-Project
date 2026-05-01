@@ -1,5 +1,6 @@
 #include "ui.h"
 
+#include "AboutUI.h"
 #include "ChatUI.h"
 #include "MenuUI.h"
 #include "PongUI.h"
@@ -29,6 +30,11 @@ void ui::setMode(UIMode newMode) {
         return;
     }
 
+    if (mode == UIMode::About) {
+        aboutUIInitDisplay();
+        return;
+    }
+
     rfTestUIInitDisplay();
 }
 
@@ -54,6 +60,10 @@ void ui::update(UIUpdateType domain, uint8_t detail) {
         }
         case UIMode::RFTest: {
             rfTestUIUpdate(RFTestAutoScreen);
+            break;
+        }
+        case UIMode::About: {
+            aboutUIUpdate();
             break;
         }
         default:

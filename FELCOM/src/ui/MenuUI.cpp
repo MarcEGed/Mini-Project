@@ -3,87 +3,80 @@
 #include <config.h>
 #include <display.h>
 
-constexpr uint8_t MENU_ART_WIDTH = 60;
-constexpr uint8_t MENU_ART_HEIGHT = 40;
-const uint8_t MENU_ART_BITMAP[] PROGMEM = {
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x0F, 0xCF, 0xC4, 0x01, 0x88, 0xC1, 0x82, 0x00,
-    0x1F, 0xFF, 0xFE, 0x07, 0xE3, 0xF3, 0xC7, 0x80, 0x1F, 0xDF, 0xCE, 0x0F,
-    0xF7, 0xFB, 0xC7, 0x00, 0x1C, 0x1C, 0x0E, 0x1C, 0x7F, 0x1F, 0xC7, 0x80,
-    0x1F, 0x9F, 0xCE, 0x1C, 0x0E, 0x1F, 0xEF, 0x00, 0x1F, 0xDF, 0xEE, 0x5C,
-    0x0E, 0x1F, 0xEF, 0x80, 0x1F, 0x9F, 0xCE, 0x1C, 0x0E, 0x0F, 0xEF, 0x00,
-    0x1C, 0x1C, 0x0E, 0x1C, 0x3E, 0x1F, 0xBF, 0x80, 0x1C, 0x1C, 0x0E, 0x0C,
-    0xAE, 0x1F, 0xFF, 0x00, 0x1C, 0x1B, 0xEF, 0xEF, 0xF7, 0xFB, 0xBB, 0x80,
-    0x1C, 0x1F, 0xFF, 0xE7, 0xE3, 0xF3, 0xB9, 0x00, 0x08, 0x0F, 0xF7, 0xE3,
-    0x80, 0xE1, 0x19, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x10, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01,
-    0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-const uint8_t BRAILLE_DOT_ROWS = 4;
-constexpr uint8_t MENU_SELECTION_COUNT = 3;
+constexpr uint8_t MENU_SELECTION_COUNT = 4;
 
-MenuModeSelection g_selection = MenuPong;
+MenuModeSelection g_selection = MenuChat;
 
-#define TOP_BAR_HEIGHT 10
-
-void renderTopBar() {
-    display.fillRect(0, 0, SCREEN_WIDTH, TOP_BAR_HEIGHT, SSD1306_BLACK);
-    display.setTextSize(1);
-    display.setTextColor(SSD1306_WHITE);
-    
-    // Left align version (truncate to prevent overlap)
-    display.setCursor(0, 1);
-    char ver[12];
-    snprintf(ver, sizeof(ver), "%.10s", FELCOM_VERSION);
-    display.print(ver);
-
-    // Right align Node Name & ID
-    char idStr[16];
-    snprintf(idStr, sizeof(idStr), "%c:0x%02X", (char)NODE_NAME, SENDER_ID);
-    int16_t idWidth = strlen(idStr) * 6; // Standard 5x7 font + 1px spacing
-    display.setCursor(SCREEN_WIDTH - idWidth, 1);
-    display.print(idStr);
-
-    display.drawFastHLine(0, TOP_BAR_HEIGHT - 1, SCREEN_WIDTH, SSD1306_WHITE);
-}
+#define TOP_BAR_HEIGHT 15
 
 void renderMenu() {
     display.clearDisplay();
-    uint8_t artX = (SCREEN_WIDTH > MENU_ART_WIDTH)
-                       ? (SCREEN_WIDTH - MENU_ART_WIDTH) / 2
-                       : 0;
-    display.drawBitmap(artX, TOP_BAR_HEIGHT, MENU_ART_BITMAP, MENU_ART_WIDTH,
-                       MENU_ART_HEIGHT, SSD1306_WHITE);
 
-    uint8_t selectorY = TOP_BAR_HEIGHT + MENU_ART_HEIGHT + 2;
+    // Box around the screen
+    display.drawRect(2, 2, SCREEN_WIDTH - 4, SCREEN_HEIGHT - 4, SSD1306_WHITE);
+    // Divider line for top bar
+    display.drawFastHLine(2, TOP_BAR_HEIGHT + 2, SCREEN_WIDTH - 4,
+                          SSD1306_WHITE);
+
+    // Top Bar Text
     display.setTextSize(1);
     display.setTextColor(SSD1306_WHITE);
-    display.setCursor(2, selectorY);
-    display.print(g_selection == MenuPong ? ">PONG" : " PONG");
-    display.setCursor(46, selectorY);
-    display.print(g_selection == MenuChat ? ">CHAT" : " CHAT");
-    display.setCursor(84, selectorY);
-    display.print(g_selection == MenuRFTest ? ">RFTEST" : " RFTEST");
-    renderTopBar();
+
+    // Center FELCOM-OS
+    const char* title = "FELCOM-OS";
+    int16_t titleWidth = strlen(title) * 6;
+    display.setCursor((SCREEN_WIDTH - titleWidth) / 2, 6);
+    display.print(title);
+    display.setCursor((SCREEN_WIDTH - titleWidth) / 2 + 1,
+                      6);  // slight bold effect
+    display.print(title);
+
+    // Menu Items
+    uint8_t startY = TOP_BAR_HEIGHT + 8;
+    const char* items[] = {"CHAT", "PONG", "RF TEST", "ABOUT"};
+
+    uint8_t maxVisible = 3;
+    uint8_t startIndex = 0;
+    if (g_selection >= maxVisible) {
+        startIndex = g_selection - maxVisible + 1;
+    }
+
+    for (uint8_t i = 0;
+         i < maxVisible && (startIndex + i) < MENU_SELECTION_COUNT; i++) {
+        uint8_t actualIndex = startIndex + i;
+        uint8_t itemY =
+            startY + (i * 13);  // Slightly increased spacing to fit better
+
+        if (actualIndex == g_selection) {
+            display.fillRect(4, itemY - 2, SCREEN_WIDTH - 12, 11,
+                             SSD1306_WHITE);
+            display.setTextColor(SSD1306_BLACK, SSD1306_WHITE);
+            display.setCursor(6, itemY);
+            display.print("> ");
+            display.print(items[actualIndex]);
+        } else {
+            display.setTextColor(SSD1306_WHITE, SSD1306_BLACK);
+            display.setCursor(6, itemY);
+            display.print("  ");
+            display.print(items[actualIndex]);
+        }
+    }
+
+    // Draw a small scrollbar handle on the right
+    uint8_t scrollHeight = (maxVisible * 16) / MENU_SELECTION_COUNT;
+    if (scrollHeight < 5) scrollHeight = 5;
+    uint8_t scrollArea = SCREEN_HEIGHT - TOP_BAR_HEIGHT - 8 - scrollHeight;
+    uint8_t scrollY =
+        TOP_BAR_HEIGHT + 4 +
+        (startIndex * scrollArea) / (MENU_SELECTION_COUNT - maxVisible);
+
+    display.fillRect(SCREEN_WIDTH - 6, scrollY, 3, scrollHeight, SSD1306_WHITE);
+
     display.display();
 }
 
 void menuUIInitDisplay() {
-    g_selection = MenuPong;
+    g_selection = MenuChat;
     renderMenu();
 }
 
@@ -96,13 +89,13 @@ bool menuUIUpdateSelection(int8_t dirY) {
     }
 
     uint8_t index = static_cast<uint8_t>(g_selection);
-    if (dirY > 0) {
+    if (dirY < 0) {
         index = (index + 1) % MENU_SELECTION_COUNT;
     } else {
         index = (index + MENU_SELECTION_COUNT - 1) % MENU_SELECTION_COUNT;
     }
     g_selection = static_cast<MenuModeSelection>(index);
-    return true;
+    return true;  // We changed selection, UI needs redrawing
 }
 
 MenuModeSelection menuUIGetSelection() { return g_selection; }

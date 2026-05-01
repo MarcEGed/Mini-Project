@@ -11,6 +11,7 @@ enum UIMode : uint8_t {
     Chat = 1,
     Pong = 2,
     RFTest = 3,
+    About = 4,
 };
 
 enum UIUpdateType : uint8_t {
