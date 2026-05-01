@@ -44,9 +44,20 @@ void renderTopBar() {
     display.fillRect(0, 0, SCREEN_WIDTH, TOP_BAR_HEIGHT, SSD1306_BLACK);
     display.setTextSize(1);
     display.setTextColor(SSD1306_WHITE);
-    display.setCursor(0, 0);
-    display.printf("%s | ID:0x%02X | %c", FELCOM_VERSION, SENDER_ID,
-                   (char)NODE_NAME);
+    
+    // Left align version (truncate to prevent overlap)
+    display.setCursor(0, 1);
+    char ver[12];
+    snprintf(ver, sizeof(ver), "%.10s", FELCOM_VERSION);
+    display.print(ver);
+
+    // Right align Node Name & ID
+    char idStr[16];
+    snprintf(idStr, sizeof(idStr), "%c:0x%02X", (char)NODE_NAME, SENDER_ID);
+    int16_t idWidth = strlen(idStr) * 6; // Standard 5x7 font + 1px spacing
+    display.setCursor(SCREEN_WIDTH - idWidth, 1);
+    display.print(idStr);
+
     display.drawFastHLine(0, TOP_BAR_HEIGHT - 1, SCREEN_WIDTH, SSD1306_WHITE);
 }
 

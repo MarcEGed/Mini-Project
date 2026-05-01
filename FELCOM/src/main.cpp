@@ -49,6 +49,11 @@ void loop() {
     //          xcvr.radio->getChannel());
     int8_t dir = inputDirectionY();
     bool btnDown = inputButtonPressed();
+    bool backDown = inputBackPressed();
+
+    if (backDown && appUI.mode != UIMode::Menu) {
+        appUI.setMode(UIMode::Menu);
+    }
 
     switch (appUI.mode) {
         case UIMode::Menu:

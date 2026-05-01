@@ -155,4 +155,6 @@ bool inputButtonPressed() {
     return false;
 }
 
+bool inputBackPressed() { return false; }
+
 #endif

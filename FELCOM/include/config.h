@@ -3,7 +3,9 @@
 #include <stdint.h>
 
 // NODE config
-#define FELCOM_VERSION "v1.0"
+#ifndef FELCOM_VERSION
+#define FELCOM_VERSION "unknown"
+#endif
 // change for each device flashed
 #ifndef SENDER_ID
 #define SENDER_ID 0x01
@@ -59,7 +61,7 @@ const uint8_t USABLE_CHANNELS[NRF24L01_MAX_CHANNEL_INDEX + 1] = {
 // IMPORTANT: for debug purposes
 // 1 for rotary encoder input
 // 0 for joystick input
-#define USE_BUTTONS 0
+#define USE_BUTTONS 1
 
 #if defined(USE_BUTTONS) && USE_BUTTONS
 //button inputs
