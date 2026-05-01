@@ -38,15 +38,27 @@ constexpr uint8_t MENU_SELECTION_COUNT = 3;
 
 MenuModeSelection g_selection = MenuPong;
 
+#define TOP_BAR_HEIGHT 10
+
+void renderTopBar() {
+    display.fillRect(0, 0, SCREEN_WIDTH, TOP_BAR_HEIGHT, SSD1306_BLACK);
+    display.setTextSize(1);
+    display.setTextColor(SSD1306_WHITE);
+    display.setCursor(0, 0);
+    display.printf("%s | ID:0x%02X | %c", FELCOM_VERSION, SENDER_ID,
+                   (char)NODE_NAME);
+    display.drawFastHLine(0, TOP_BAR_HEIGHT - 1, SCREEN_WIDTH, SSD1306_WHITE);
+}
+
 void renderMenu() {
     display.clearDisplay();
     uint8_t artX = (SCREEN_WIDTH > MENU_ART_WIDTH)
                        ? (SCREEN_WIDTH - MENU_ART_WIDTH) / 2
                        : 0;
-    display.drawBitmap(artX, 0, MENU_ART_BITMAP, MENU_ART_WIDTH,
+    display.drawBitmap(artX, TOP_BAR_HEIGHT, MENU_ART_BITMAP, MENU_ART_WIDTH,
                        MENU_ART_HEIGHT, SSD1306_WHITE);
 
-    uint8_t selectorY = MENU_ART_HEIGHT + 2;
+    uint8_t selectorY = TOP_BAR_HEIGHT + MENU_ART_HEIGHT + 2;
     display.setTextSize(1);
     display.setTextColor(SSD1306_WHITE);
     display.setCursor(2, selectorY);
@@ -55,7 +67,7 @@ void renderMenu() {
     display.print(g_selection == MenuChat ? ">CHAT" : " CHAT");
     display.setCursor(84, selectorY);
     display.print(g_selection == MenuRFTest ? ">RFTEST" : " RFTEST");
-
+    renderTopBar();
     display.display();
 }
 

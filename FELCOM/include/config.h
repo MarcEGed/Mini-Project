@@ -3,10 +3,15 @@
 #include <stdint.h>
 
 // NODE config
+#define FELCOM_VERSION "v1.0"
 // change for each device flashed
+#ifndef SENDER_ID
 #define SENDER_ID 0x01
+#endif
 // in chat name, also change for each
+#ifndef NODE_NAME
 #define NODE_NAME 'b'
+#endif
 
 // Debug config
 #define DEBUG 1
