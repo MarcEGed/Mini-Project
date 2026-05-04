@@ -48,3 +48,9 @@ bool transceiver::read(void *data, uint8_t len){
     LOG_INFO("Packet received");
     return true;
 }
+
+bool transceiver::readAudio(void* data, uint8_t len) {
+    if (!radio->available()) return false;
+    radio->read(data, len);
+    return true;
+}
