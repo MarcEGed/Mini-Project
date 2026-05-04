@@ -89,11 +89,7 @@
 		)
 	)
 	(pad "1" thru_hole circle
-<<<<<<< Updated upstream:hardware/fabrication_pcb/Mini Project/MyFootprints.pretty/MH-ET_I2S_MICROPHONE_MODULE.kicad_mod
 		(at -2.54 5.08)
-=======
-		(at 2.54 0)
->>>>>>> Stashed changes:hardware/fabrication_pcb/Mini Project/MyFootprints.pretty/NRF24L01_PA_LNA.kicad_mod
 		(size 1.7 1.7)
 		(drill 0.8)
 		(layers "*.Cu" "*.Mask")
@@ -101,11 +97,7 @@
 		(uuid "beded4cd-270b-44ea-801e-f97f3494a71d")
 	)
 	(pad "2" thru_hole circle
-<<<<<<< Updated upstream:hardware/fabrication_pcb/Mini Project/MyFootprints.pretty/MH-ET_I2S_MICROPHONE_MODULE.kicad_mod
 		(at 0 5.08)
-=======
-		(at 0 0)
->>>>>>> Stashed changes:hardware/fabrication_pcb/Mini Project/MyFootprints.pretty/NRF24L01_PA_LNA.kicad_mod
 		(size 1.7 1.7)
 		(drill 0.8)
 		(layers "*.Cu" "*.Mask")
