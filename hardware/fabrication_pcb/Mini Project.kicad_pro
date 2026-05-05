@@ -242,7 +242,7 @@
       "internal_id": "",
       "mfg": "",
       "mpn": "",
-      "sch_revision": ""
+      "sch_revision": "2"
     },
     "layer_pairs": [],
     "layer_presets": [],
@@ -663,7 +663,7 @@
         "uuid": "b4f08914-2bf1-4cc1-9cba-52e16a9c3d80"
       }
     ],
-    "used_designators": "",
+    "used_designators": "BTN_BACK1,BTN_SELECT1,J1,BTN_DOWN1,BTN_UP1,#PWR7-8",
     "variants": []
   },
   "sheets": [
