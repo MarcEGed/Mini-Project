@@ -644,6 +644,14 @@
       "version": 1
     },
     "net_format_name": "",
+    "ngspice": {
+      "fix_include_paths": true,
+      "meta": {
+        "version": 0
+      },
+      "model_mode": 4,
+      "workbook_filename": ""
+    },
     "page_layout_descr_file": "",
     "plot_directory": "",
     "reuse_designators": true,
@@ -663,7 +671,7 @@
         "uuid": "b4f08914-2bf1-4cc1-9cba-52e16a9c3d80"
       }
     ],
-    "used_designators": "BTN_BACK1,BTN_SELECT1,J1,BTN_DOWN1,BTN_UP1,#PWR7-8",
+    "used_designators": "",
     "variants": []
   },
   "sheets": [

@@ -29,7 +29,7 @@
 			)
 		)
 		(property "Footprint" "MyFootprints:ESP32_DevKit_V1_30pin"
-			(at 0 14.732 0)
+			(at 22.606 -16.51 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -74,8 +74,8 @@
 			)
 		)
 		(symbol "ESP32_DevKit_V1_1_0"
-			(pin power_in line
-				(at -8.89 8.89 0)
+			(pin power_out line
+				(at 0 15.24 270)
 				(length 2.54)
 				(name "3V3"
 					(effects
@@ -93,7 +93,7 @@
 				)
 			)
 			(pin power_in line
-				(at -8.89 7.62 0)
+				(at 0 -16.51 90)
 				(length 2.54)
 				(name "GND"
 					(effects
@@ -345,7 +345,7 @@
 				)
 			)
 			(pin power_in line
-				(at 8.89 8.89 180)
+				(at -2.54 15.24 270)
 				(length 2.54)
 				(name "VIN"
 					(effects
@@ -363,7 +363,7 @@
 				)
 			)
 			(pin power_in line
-				(at 8.89 7.62 180)
+				(at 1.27 -16.51 90)
 				(length 2.54)
 				(name "GND"
 					(effects
@@ -810,7 +810,7 @@
 			)
 		)
 		(property "Footprint" "MyFootprints:LM386_MODULE"
-			(at 0.254 5.334 0)
+			(at 20.066 -6.604 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(hide yes)
@@ -857,7 +857,7 @@
 		)
 		(symbol "LM386_MODULE_1_1"
 			(pin power_in line
-				(at -8.89 2.54 0)
+				(at 0 6.35 270)
 				(length 2.54)
 				(name "VCC"
 					(effects
@@ -893,7 +893,7 @@
 				)
 			)
 			(pin power_in line
-				(at -8.89 -1.27 0)
+				(at -1.27 -6.35 90)
 				(length 2.54)
 				(name "GND"
 					(effects
@@ -911,7 +911,7 @@
 				)
 			)
 			(pin power_in line
-				(at -8.89 -2.54 0)
+				(at 0 -6.35 90)
 				(length 2.54)
 				(name "GND"
 					(effects
@@ -947,7 +947,7 @@
 				)
 			)
 			(pin power_in line
-				(at 8.89 -1.27 180)
+				(at 2.54 -6.35 90)
 				(length 2.54)
 				(name "GND"
 					(effects
@@ -1097,6 +1097,190 @@
 		)
 		(embedded_fonts no)
 	)
+	(symbol "MH-ET_I2S_MICROPHONE_MODULE"
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(duplicate_pin_numbers_are_jumpers no)
+		(property "Reference" "U"
+			(at 5.588 4.318 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" ""
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(symbol "MH-ET_I2S_MICROPHONE_MODULE_0_1"
+			(rectangle
+				(start -3.81 5.08)
+				(end 3.81 -5.08)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+		)
+		(symbol "MH-ET_I2S_MICROPHONE_MODULE_1_1"
+			(pin output line
+				(at 6.35 0 180)
+				(length 2.54)
+				(name "SD"
+					(effects
+						(font
+							(size 0.508 0.508)
+						)
+					)
+				)
+				(number "1"
+					(effects
+						(font
+							(size 0.508 0.508)
+						)
+					)
+				)
+			)
+			(pin power_in line
+				(at 0 7.62 270)
+				(length 2.54)
+				(name "VCC"
+					(effects
+						(font
+							(size 0.508 0.508)
+						)
+					)
+				)
+				(number "2"
+					(effects
+						(font
+							(size 0.508 0.508)
+						)
+					)
+				)
+			)
+			(pin power_in line
+				(at 0 -7.62 90)
+				(length 2.54)
+				(name "GND"
+					(effects
+						(font
+							(size 0.508 0.508)
+						)
+					)
+				)
+				(number "3"
+					(effects
+						(font
+							(size 0.508 0.508)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -6.35 1.27 0)
+				(length 2.54)
+				(name "L/R"
+					(effects
+						(font
+							(size 0.508 0.508)
+						)
+					)
+				)
+				(number "4"
+					(effects
+						(font
+							(size 0.508 0.508)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -6.35 0 0)
+				(length 2.54)
+				(name "WS"
+					(effects
+						(font
+							(size 0.508 0.508)
+						)
+					)
+				)
+				(number "5"
+					(effects
+						(font
+							(size 0.508 0.508)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -6.35 -1.27 0)
+				(length 2.54)
+				(name "SCK"
+					(effects
+						(font
+							(size 0.508 0.508)
+						)
+					)
+				)
+				(number "6"
+					(effects
+						(font
+							(size 0.508 0.508)
+						)
+					)
+				)
+			)
+		)
+		(embedded_fonts no)
+	)
 	(symbol "NRF24L01_PA_LNA"
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -1124,7 +1308,7 @@
 			)
 		)
 		(property "Footprint" "MyFootprints:NRF24L01_PA_LNA"
-			(at 0 8.128 0)
+			(at -1.27 8.128 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(hide yes)
@@ -1158,8 +1342,8 @@
 		)
 		(symbol "NRF24L01_PA_LNA_0_1"
 			(rectangle
-				(start -2.54 6.35)
-				(end 2.54 -6.35)
+				(start -3.81 5.08)
+				(end 3.81 -6.35)
 				(stroke
 					(width 0)
 					(type default)
@@ -1171,7 +1355,7 @@
 		)
 		(symbol "NRF24L01_PA_LNA_1_1"
 			(pin power_in line
-				(at -5.08 5.08 0)
+				(at 0 -8.89 90)
 				(length 2.54)
 				(name "GND"
 					(effects
@@ -1189,7 +1373,7 @@
 				)
 			)
 			(pin power_in line
-				(at -5.08 3.81 0)
+				(at 0 7.62 270)
 				(length 2.54)
 				(name "VCC"
 					(effects
@@ -1207,7 +1391,7 @@
 				)
 			)
 			(pin input line
-				(at -5.08 2.54 0)
+				(at -6.35 1.27 0)
 				(length 2.54)
 				(name "CE"
 					(effects
@@ -1225,7 +1409,7 @@
 				)
 			)
 			(pin input line
-				(at -5.08 1.27 0)
+				(at -6.35 0 0)
 				(length 2.54)
 				(name "CSN"
 					(effects
@@ -1243,7 +1427,7 @@
 				)
 			)
 			(pin input line
-				(at -5.08 -1.27 0)
+				(at -6.35 -1.27 0)
 				(length 2.54)
 				(name "SCK"
 					(effects
@@ -1261,7 +1445,7 @@
 				)
 			)
 			(pin input line
-				(at -5.08 -2.54 0)
+				(at -6.35 -2.54 0)
 				(length 2.54)
 				(name "MOSI"
 					(effects
@@ -1279,7 +1463,7 @@
 				)
 			)
 			(pin output line
-				(at -5.08 -3.81 0)
+				(at 6.35 0 180)
 				(length 2.54)
 				(name "MISO"
 					(effects
@@ -1297,7 +1481,7 @@
 				)
 			)
 			(pin output line
-				(at -5.08 -5.08 0)
+				(at 6.35 -1.27 180)
 				(length 2.54)
 				(name "IRQ"
 					(effects
@@ -1344,7 +1528,7 @@
 			)
 		)
 		(property "Footprint" "MyFootprints:OLED_128x64_I2C"
-			(at 0 5.334 0)
+			(at 18.034 -5.842 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(hide yes)
@@ -1391,7 +1575,7 @@
 		)
 		(symbol "OLED_128x64_I2C_1_1"
 			(pin power_in line
-				(at -6.35 2.54 0)
+				(at 0 -6.35 90)
 				(length 2.54)
 				(name "GND"
 					(effects
@@ -1409,7 +1593,7 @@
 				)
 			)
 			(pin power_in line
-				(at -6.35 1.27 0)
+				(at 0 6.35 270)
 				(length 2.54)
 				(name "VCC"
 					(effects
@@ -1427,7 +1611,7 @@
 				)
 			)
 			(pin input line
-				(at -6.35 -1.27 0)
+				(at -6.35 1.27 0)
 				(length 2.54)
 				(name "SCK"
 					(effects
@@ -1445,7 +1629,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at -6.35 -2.54 0)
+				(at -6.35 -1.27 0)
 				(length 2.54)
 				(name "SDA"
 					(effects
