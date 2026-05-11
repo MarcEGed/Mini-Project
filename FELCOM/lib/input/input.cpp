@@ -20,7 +20,7 @@ static uint32_t lastSelectMs = 0;
 static uint32_t lastBackMs = 0;
 
 static uint8_t lastSelectState = HIGH;
-static uint8_t lastBackState   = HIGH;
+static uint8_t lastBackState = HIGH;
 
 static uint32_t lastMoveMs = 0;
 static int8_t lastDir = 0;
@@ -39,8 +39,10 @@ int8_t inputDirectionY() {
     bool down = (digitalRead(BTN_DOWN_PIN) == LOW);
 
     int8_t dir = 0;
-    if (up) dir = 1;
-    else if (down) dir = -1;
+    if (up)
+        dir = 1;
+    else if (down)
+        dir = -1;
 
     if (dir == 0) {
         lastDir = 0;
@@ -50,7 +52,6 @@ int8_t inputDirectionY() {
     if (dir != lastDir || (now - lastMoveMs) >= HOLD_REPEAT_MS) {
         if ((dir == 1 && (now - lastUpMs) > DEBOUNCE_MS) ||
             (dir == -1 && (now - lastDownMs) > DEBOUNCE_MS)) {
-
             lastMoveMs = now;
             lastDir = dir;
 
@@ -69,7 +70,7 @@ bool inputButtonPressed() {
 
     if (lastSelectState == HIGH && current == LOW) {
         lastSelectState = current;
-        return true;   // 🔥 trigger ONLY once on press
+        return true;  // 🔥 trigger ONLY once on press
     }
 
     lastSelectState = current;
@@ -81,7 +82,7 @@ bool inputBackPressed() {
 
     if (lastBackState == HIGH && current == LOW) {
         lastBackState = current;
-        return true;   // 🔥 trigger ONLY once on press
+        return true;  // 🔥 trigger ONLY once on press
     }
 
     lastBackState = current;
@@ -89,7 +90,6 @@ bool inputBackPressed() {
 }
 
 int8_t inputDirectionYContinuous() { return inputDirectionY(); }
-
 
 // ════════════════════════════════════════════════════════════════════════════
 // JOYSTICK

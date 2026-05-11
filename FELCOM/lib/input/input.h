@@ -12,9 +12,7 @@ int8_t inputDirectionY();
 int8_t inputDirectionYContinuous();
 // debounced button check
 bool inputButtonPressed();
-//back button
-bool inputBackPressed();
-
+// back button
 bool inputBackPressed();
 
 #endif

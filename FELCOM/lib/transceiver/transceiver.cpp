@@ -37,7 +37,7 @@ bool transceiver::write(const void* data, uint8_t len) {
         return false;
     }
     bool ok = radio->write(data, len);
-    hop();
+    // hop();
     return ok;
 }
 
@@ -46,7 +46,7 @@ bool transceiver::read(void* data, uint8_t len) {
     if (!radio->available()) return false;
 
     radio->read(data, len);
-    hop();
+    // hop();
     LOG_INFO("Packet received");
     return true;
 }
