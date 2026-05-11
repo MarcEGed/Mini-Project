@@ -89,7 +89,22 @@ bool inputBackPressed() {
     return false;
 }
 
-int8_t inputDirectionYContinuous() { return inputDirectionY(); }
+int8_t inputDirectionYContinuous() {
+    bool up = (digitalRead(BTN_UP_PIN) == LOW);
+    bool down = (digitalRead(BTN_DOWN_PIN) == LOW);
+
+    int8_t dir = 0;
+    if (up)
+        dir = 1;
+    else if (down)
+        dir = -1;
+
+    if (dir == 0) {
+        lastDir = 0;
+        return 0;
+    }
+    return dir;
+}
 
 // ════════════════════════════════════════════════════════════════════════════
 // JOYSTICK

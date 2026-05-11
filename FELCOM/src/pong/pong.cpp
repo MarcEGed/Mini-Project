@@ -227,10 +227,10 @@ void pongLoop(PongGame* game, int8_t localDirY) {
     }
 
     if (game->isHost) {
-        game->paddleLeft += localDirY * 2.5f;
+        game->paddleLeft -= localDirY * 2.5f;
         clampPaddle(game->paddleLeft);
     } else {
-        game->paddleRight += localDirY * 2.5f;
+        game->paddleRight -= localDirY * 2.5f;
         clampPaddle(game->paddleRight);
     }
 
