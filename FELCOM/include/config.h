@@ -1,12 +1,19 @@
 #ifndef CONFIG_H
 #define CONFIG_H
-#include <Arduino.h>
+#include <stdint.h>
 
 // NODE config
+#ifndef FELCOM_VERSION
+#define FELCOM_VERSION "unknown"
+#endif
 // change for each device flashed
-#define SENDER_ID 0x02
+#ifndef SENDER_ID
+#define SENDER_ID 0x01
+#endif
 // in chat name, also change for each
-#define NODE_NAME 'x'
+#ifndef NODE_NAME
+#define NODE_NAME 'b'
+#endif
 
 // Debug config
 #define DEBUG 1
@@ -15,7 +22,6 @@
 
 // Interference Testing Mode
 #define TEST_PATTERN        0xAB
-#define RF_TEST_TX          0
 #define RF_TEST_PACKET_SIZE 32
 #define RF_TEST_DELAY_MS    1000
 
@@ -55,21 +61,16 @@ const uint8_t USABLE_CHANNELS[NRF24L01_MAX_CHANNEL_INDEX + 1] = {
 // IMPORTANT: for debug purposes
 // 1 for rotary encoder input
 // 0 for joystick input
-#define USE_ROTARY_ENCODER 0
+#define USE_BUTTONS 1
 
-#if defined(USE_ROTARY_ENCODER) && USE_ROTARY_ENCODER
-// Rotary encoder config
-#define ROTARY_ENCODER_CLK_PIN 32
-#define ROTARY_ENCODER_DT_PIN 35
-#define ROTARY_ENCODER_SW_PIN 33
-
-// Optional compile-time ISR hooks for encoder direction events.
-// Define these to function names available at compile time, for example:
-#define ROTARY_ENCODER_CW_CALLBACK rotaryEncoderCW
-#define ROTARY_ENCODER_CCW_CALLBACK rotaryEncoderCCW
-#define ROTARY_ENCODER_SW_CALLBACK rotaryEncoderButtonPressed
-
+#if defined(USE_BUTTONS) && USE_BUTTONS
+//button inputs
+#define BTN_UP_PIN     32
+#define BTN_DOWN_PIN   33
+#define BTN_SELECT_PIN 27
+#define BTN_BACK_PIN   14
 #else
+
 // Joystick config
 #define JOYSTICK_Y_PIN 35
 #define JOYSTICK_SW_PIN 33
@@ -84,5 +85,10 @@ const uint8_t USABLE_CHANNELS[NRF24L01_MAX_CHANNEL_INDEX + 1] = {
 #define SCREEN_HEIGHT 64
 #define SCREEN_SDA_PIN 21
 #define SCREEN_SCL_PIN 22
+
+// Pong config
+#define PONG_SCORE_TO_WIN 7
+#define PONG_TICK_MS 30
+#define PONG_TX_INTERVAL_MS 15
 
 #endif  // CONFIG_H

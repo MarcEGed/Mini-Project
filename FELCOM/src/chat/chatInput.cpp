@@ -1,5 +1,6 @@
 #include "chatInput.h"
 
+#include <Arduino.h>
 #include <config.h>
 #include <string.h>
 
@@ -11,37 +12,28 @@ static const char SEND_CHAR = '\x7F';  // confirms sending
 void chatInput::init() {
     memset(buffer, 0, sizeof(buffer));
     length = 0;
-    currentChar = CHARSET[0];
+    currentIndex = 0;
     messageReady = false;
     lastMoveMs = 0;
     lastDirY = 0;
 }
 
-void chatInput::tickJoystick(int8_t dirY, bool btnPressed) {
-    if (dirY != 0 && lastDirY == 0) {
-        advance(dirY);
-    }
-    lastDirY = dirY;
+bool chatInput::tickJoystick(int8_t dirY, bool btnPressed) {
+    // return true if we should update the input display (moved or sent message)
+    advance(dirY);
     if (btnPressed) {
         commit();
     }
+    return dirY != 0 || btnPressed;
 }
 
 void chatInput::advance(int8_t dir) {
-    uint8_t index = 0;
-    for (uint8_t i = 0; i < CHARSET_LEN; i++) {
-        if (CHARSET[i] == currentChar) {
-            index = i;
-            break;
-        }
-    }
-    index = (index + dir + CHARSET_LEN) % CHARSET_LEN;
-    currentChar = CHARSET[index];
+    currentIndex = (currentIndex + dir + CHARSET_LEN) % CHARSET_LEN;
 }
 
 void chatInput::commit() {
     // Send character -> transmits whatever is in the buffer
-    if (currentChar == SEND_CHAR) {
+    if (CHARSET[currentIndex] == SEND_CHAR) {
         if (length > 0) {
             messageReady = true;
         }
@@ -50,7 +42,7 @@ void chatInput::commit() {
 
     // add character character if there's room
     if (length < MAX_INPUT_LENGTH) {
-        buffer[length++] = currentChar;
+        buffer[length++] = CHARSET[currentIndex];
         buffer[length] = '\0';
     }
 
@@ -62,6 +54,8 @@ void chatInput::commit() {
 
 bool chatInput::hasMessage() { return messageReady; }
 
+char chatInput::selectedChar() const { return CHARSET[currentIndex]; }
+
 void chatInput::popMessage(Message& out, uint8_t senderID, char name) {
     out.senderId = senderID;
     out.senderName = name;
@@ -72,6 +66,6 @@ void chatInput::popMessage(Message& out, uint8_t senderID, char name) {
     // reset
     memset(buffer, 0, sizeof(buffer));
     length = 0;
-    currentChar = CHARSET[0];
+    currentIndex = 0;
     messageReady = false;
 }
