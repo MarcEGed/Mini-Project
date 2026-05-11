@@ -10,6 +10,8 @@
 #include "message.h"
 #include "pong/pong.h"
 #include "rf_test/testMode.h"
+#include "audio/audio.h"
+#include "ui/AudioUI.h"
 #include "ui/MenuUI.h"
 #include "ui/PongUI.h"
 #include "ui/RFTestUI.h"
@@ -52,6 +54,9 @@ void loop() {
     bool backDown = inputBackPressed();
 
     if (backDown && appUI.mode != UIMode::Menu) {
+        if (appUI.mode == UIMode::Audio) {
+            audioStop();
+        }
         appUI.setMode(UIMode::Menu);
     }
 
@@ -68,6 +73,8 @@ void loop() {
                     appUI.setMode(UIMode::Chat);
                 } else if (selection == MenuAbout) {
                     appUI.setMode(UIMode::About);
+                } else if (selection == MenuAudio) {
+                    appUI.setMode(UIMode::Audio);
                 } else {
                     appUI.setMode(UIMode::RFTest);
                 }
@@ -121,6 +128,12 @@ void loop() {
             if (rfTestUITickInput(xcvr, dir, btnDown, millis())) {
                 appUI.onRFTestStateChanged();
             }
+            break;
+        case UIMode::Audio:
+            if (audioUITickInput(xcvr, dir, btnDown)) {
+                appUI.onAudioStateChanged();
+            }
+            audioLoop();
             break;
         case UIMode::About:
             // About has no active input right now besides back button

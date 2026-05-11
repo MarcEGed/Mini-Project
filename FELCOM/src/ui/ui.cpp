@@ -1,6 +1,7 @@
 #include "ui.h"
 
 #include "AboutUI.h"
+#include "AudioUI.h"
 #include "ChatUI.h"
 #include "MenuUI.h"
 #include "PongUI.h"
@@ -35,6 +36,11 @@ void ui::setMode(UIMode newMode) {
         return;
     }
 
+    if (mode == UIMode::Audio) {
+        audioUIInitDisplay();
+        return;
+    }
+
     rfTestUIInitDisplay();
 }
 
@@ -60,6 +66,10 @@ void ui::update(UIUpdateType domain, uint8_t detail) {
         }
         case UIMode::RFTest: {
             rfTestUIUpdate(RFTestAutoScreen);
+            break;
+        }
+        case UIMode::Audio: {
+            audioUIUpdate();
             break;
         }
         case UIMode::About: {
@@ -109,4 +119,12 @@ void ui::onRFTestStateChanged() {
     }
 
     update(UIUpdateType::Full, static_cast<uint8_t>(RFTestAutoScreen));
+}
+
+void ui::onAudioStateChanged() {
+    if (mode != UIMode::Audio) {
+        return;
+    }
+
+    update(UIUpdateType::Full);
 }
