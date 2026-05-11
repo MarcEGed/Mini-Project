@@ -12,16 +12,16 @@
 struct chatInput {
     char buffer[MAX_INPUT_LENGTH + 1];
     uint8_t length;
-    // character under the cursor
-    char currentChar;
+    uint8_t currentIndex;
 
     void init();
-    void tickJoystick(int8_t dirY, bool btnPressed);
+    bool tickJoystick(int8_t dirY, bool btnPressed);
 
     // returns true when a message is ready
     bool hasMessage();
     // fills msg, call after hasMessage()
     void popMessage(Message& out, uint8_t senderID, char name);
+    char selectedChar() const;
 
    private:
     bool messageReady;

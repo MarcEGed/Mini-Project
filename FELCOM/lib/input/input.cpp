@@ -1,5 +1,6 @@
 #include "input.h"
 
+#include <Arduino.h>
 #include <config.h>
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -86,6 +87,10 @@ bool inputBackPressed() {
     lastBackState = current;
     return false;
 }
+
+int8_t inputDirectionYContinuous() { return inputDirectionY(); }
+
+
 // ════════════════════════════════════════════════════════════════════════════
 // JOYSTICK
 // ════════════════════════════════════════════════════════════════════════════
@@ -95,6 +100,15 @@ static uint8_t lastBtn = HIGH;
 static uint32_t lastBtnMs = 0;
 static const uint32_t DEBOUNCE_MS = 40;
 
+static int8_t readJoystickDirection() {
+    int raw = analogRead(JOYSTICK_Y_PIN);
+    int centered = raw - JOYSTICK_Y_CENTER;
+
+    if (centered > JOYSTICK_DEADZONE) return 1;
+    if (centered < -JOYSTICK_DEADZONE) return -1;
+    return 0;
+}
+
 void inputInit() {
     // pin 35 is input-only on ESP32 and no pinMode needed for ADC
     pinMode(JOYSTICK_SW_PIN, INPUT_PULLUP);
@@ -102,12 +116,7 @@ void inputInit() {
 }
 
 int8_t inputDirectionY() {
-    int raw = analogRead(JOYSTICK_Y_PIN);
-    int centered = raw - JOYSTICK_Y_CENTER;
-    int8_t dir = 0;
-
-    if (centered > JOYSTICK_DEADZONE) dir = 1;
-    if (centered < -JOYSTICK_DEADZONE) dir = -1;
+    int8_t dir = readJoystickDirection();
 
     static int8_t lastDir = 0;
     static uint32_t lastMoveMs = 0;
@@ -125,16 +134,12 @@ int8_t inputDirectionY() {
         lastDir = dir;
         lastMoveMs = now;
 
-        static int8_t lastLogDir = 0;
-        if (dir != lastLogDir) {
-            // LOG_INFO("Joystick dir changed: %d (raw: %d)", dir, raw);
-            lastLogDir = dir;
-        }
-
         return dir;
     }
     return 0;
 }
+
+int8_t inputDirectionYContinuous() { return readJoystickDirection(); }
 
 bool inputButtonPressed() {
     uint32_t now = millis();
@@ -149,5 +154,7 @@ bool inputButtonPressed() {
     lastBtn = state;
     return false;
 }
+
+bool inputBackPressed() { return false; }
 
 #endif
