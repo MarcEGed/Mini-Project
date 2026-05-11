@@ -9,6 +9,7 @@
 #include "chat/chat.h"
 #include "message.h"
 #include "pong/pong.h"
+#include "audio.h"
 #include "rf_test/testMode.h"
 #include "ui/MenuUI.h"
 #include "ui/PongUI.h"
@@ -16,6 +17,7 @@
 #include "ui/ui.h"
 
 transceiver xcvr;
+AudioHandler audio(&xcvr);
 ChatHandler chat;
 PongGame pong;
 ui appUI;
@@ -33,6 +35,7 @@ void setup() {
     xcvr.setMode(RECEIVE);
     LOG_INFO("Transceiver ready");
 
+    audio.begin();
     chat.init();
     initializeGame(&pong);
     appUI.init(&chat, &pong);
@@ -232,6 +235,9 @@ incoming.senderName, incoming.text); if (incoming.senderId != SENDER_ID) {
         }
     }
 
-    renderChat(Log, Input);
-    delay(30);
-}*/
+    #if AUDIO_ENABLED == 1
+        audio.txTick();
+    #elif AUDIO_ENABLED == 2
+        audio.rxTick();
+    #endif
+}

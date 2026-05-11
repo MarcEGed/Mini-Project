@@ -15,8 +15,9 @@ struct transceiver {
 
     void setup();
     void setMode(transceiverMode newMode);
-    bool write(const void* data, uint8_t len);
-    bool read(void* data, uint8_t len);
+    bool write(const void *data, uint8_t len);
+    bool read(void *data, uint8_t len);
+    bool readAudio(void* data, uint8_t len);
     void hop();
 };
 
