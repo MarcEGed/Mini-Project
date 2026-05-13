@@ -22,7 +22,7 @@ ui appUI;
 
 void setup() {
     loggerSetup();
-    // LOG_INFO("Booting node %c (id=0x%02X)", NODE_NAME, SENDER_ID);
+    // LOG_INFO("Booting node (id=0x%02X)", NODE_ID);
 
     setupDisplay();
     // LOG_INFO("Display ready");
@@ -81,7 +81,7 @@ void loop() {
             // send
             if (chat.input.hasMessage()) {
                 Message msg;
-                chat.input.popMessage(msg, SENDER_ID, NODE_NAME);
+                chat.input.popMessage(msg, NODE_ID);
                 chat.log.push(msg);
 
                 encrypt(msg.text, sizeof(msg.text));
@@ -103,12 +103,10 @@ void loop() {
             if (xcvr.read(&incoming, sizeof(Message))) {
                 decrypt(incoming.text, sizeof(incoming.text));
 
-                LOG_INFO("Packet from 0x%02X %c: %s", incoming.senderId,
-                         incoming.senderName, incoming.text);
-                if (incoming.senderId != SENDER_ID) {
-                    chat.log.push(incoming);
-                    appUI.onChatMessageAdded();
-                }
+                LOG_INFO("Packet from 0x%02X: %s", incoming.senderId,
+                         incoming.text);
+                chat.log.push(incoming);
+                appUI.onChatMessageAdded();
             }
 
             break;

@@ -20,7 +20,7 @@ struct chatInput {
     // returns true when a message is ready
     bool hasMessage();
     // fills msg, call after hasMessage()
-    void popMessage(Message& out, uint8_t senderID, char name);
+    void popMessage(Message& out, uint8_t senderID);
     char selectedChar() const;
 
    private:

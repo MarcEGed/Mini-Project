@@ -32,7 +32,7 @@ void renderChatMain(chatLog& log, chatInput& input) {
         const Message* m = log.get(lines - 1 - i);
         display.setCursor(0, i * 16);
         char line[22];
-        snprintf(line, sizeof(line), "%c:%s", m->senderName, m->text);
+        snprintf(line, sizeof(line), "%c:%s", m->senderId, m->text);
         display.print(line);
     }
 

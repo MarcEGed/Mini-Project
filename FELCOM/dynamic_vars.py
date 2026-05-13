@@ -9,19 +9,16 @@ def get_git_revision_hash():
     except Exception:
         return "unknown"
 
-# Generate random ID (1 to 255)
-sender_id = random.randint(1, 255)
-# Generate random name (A-Z)
+# Generate random name (A-Z) representing the node ID
 node_char = random.choice(string.ascii_uppercase)
-node_name = ord(node_char) # Pass as integer ASCII value to avoid shell quoting issues
+node_id = ord(node_char) # Pass as integer ASCII value to avoid shell quoting issues
 
 version = get_git_revision_hash()
 
-print(f"\n*** Auto-generating Build Info: VERSION={version}, SENDER_ID={sender_id}, NODE_NAME='{node_char}' ***\n")
+print(f"\n*** Auto-generating Build Info: VERSION={version}, NODE_ID='{node_char}' ***\n")
 
 # Append as build flags (macros)
 env.Append(CPPDEFINES=[
-    ("SENDER_ID", sender_id),
-    ("NODE_NAME", node_name),
+    ("NODE_ID", node_id),
     ("FELCOM_VERSION", f'\\"{version}\\"')
 ])

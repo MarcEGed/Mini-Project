@@ -7,12 +7,8 @@
 #define FELCOM_VERSION "unknown"
 #endif
 // change for each device flashed
-#ifndef SENDER_ID
-#define SENDER_ID 0x01
-#endif
-// in chat name, also change for each
-#ifndef NODE_NAME
-#define NODE_NAME 'b'
+#ifndef NODE_ID
+#define NODE_ID 'B'
 #endif
 
 // Debug config
