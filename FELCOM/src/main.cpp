@@ -86,9 +86,7 @@ void loop() {
 
                 encrypt(msg.text, sizeof(msg.text));
 
-                xcvr.setMode(TRANSMIT);
-                bool ok = xcvr.write(&msg, sizeof(Message));
-                xcvr.setMode(RECEIVE);
+                bool ok = xcvr.write(PacketType::CHAT, msg);
 
                 if (ok)
                     LOG_INFO("Sent: \"%s\"", msg.text);
@@ -100,7 +98,7 @@ void loop() {
 
             // receive — one read, one push
             Message incoming;
-            if (xcvr.read(&incoming, sizeof(Message))) {
+            if (xcvr.read(PacketType::CHAT, incoming)) {
                 decrypt(incoming.text, sizeof(incoming.text));
 
                 LOG_INFO("Packet from 0x%02X: %s", incoming.senderId,

@@ -18,7 +18,7 @@
 
 // Interference Testing Mode
 #define TEST_PATTERN 0xAB
-#define RF_TEST_PACKET_SIZE 32
+#define RF_TEST_PACKET_SIZE 28
 #define RF_TEST_DELAY_MS 1000
 
 // NRF24L01 config

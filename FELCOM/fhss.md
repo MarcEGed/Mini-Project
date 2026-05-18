@@ -83,19 +83,20 @@ To join a network, nodes have two options:
 	- `timerWrite(hw_timer_t * timer, uint64_t val)`
 
 ## Steps
-1. **Packet Structure Update**: Define the new 32-byte generic packet struct using C++ bit-fields (`uint16_t type: 4; uint16_t fec: 12;`) to handle the `packet_type` and `FEC`. Adapt `include/message.h` by removing redundant fields and fitting it into the 28-byte data payload.
-2. **Setup Timer & Hopping Sequence**: Initialize the hardware timer with a 2ms frequency. Attach an interrupt that switches the NRF24 channel sequentially through the hoppable list.
-3. **CSMA & Random Backoff**: Implement carrier sensing using `RF24::testRPD()`. Before transmitting, verify the channel is clear. If busy, apply a random backoff delay before retrying.
-4. **Network Joining Mechanism**: 
+1. ~~**Packet Structure Update**~~ (Done): Define the new 32-byte generic packet struct using C++ bit-fields (`uint16_t type: 4; uint16_t fec: 12;`) to handle the `packet_type` and `FEC`. Adapt `include/message.h` by removing redundant fields and fitting it into the 28-byte data payload.
+2. ~~**Address Filtering**~~ (Done): Update the payload size to 32 bytes (`sizeof(FHSSPacket)`) in `setup()`. In `read()`, cast incoming data to `FHSSPacket*` and discard packets where `dst_node_id` is neither our node ID nor the broadcast ID (`0xFF`).
+3. ~~**CSMA & Random Backoff**~~ (Done): Implement carrier sensing using `RF24::testRPD()` in `write()`. Before transmitting, switch briefly to `RECEIVE` mode, wait 200us, verify the channel is clear, and if busy apply a random backoff delay (e.g., 1-10ms) before retrying.
+4. **Setup Timer & Hopping Sequence**: Initialize the hardware timer with a 2ms frequency. Attach an interrupt that switches the NRF24 channel sequentially through the hoppable list.
+5. **Network Joining Mechanism**: 
     - Implement active join (broadcast `ND_SYNC` with counter -1, wait for response).
     - Implement passive join (pick a random channel, wait for a packet, then broadcast `ND_SYNC` with backoff to synchronize).
-5. **Synchronization Maintenance (Implicit Piggybacking)**: 
+6. **Synchronization Maintenance (Implicit Piggybacking)**: 
     - On every successful packet reception, compare the expected timer value with the actual hardware timer.
     - Write a minor adjustment to the hardware timer (`timerWrite()`) to compensate for local clock drift.
-6. **Out-of-Sync Handling**: Implement a counter to track consecutive silent hops. If the network is entirely silent for 1000 hops (~2 seconds), declare the node out of sync and broadcast an `ND_SYNC` packet.
+7. **Out-of-Sync Handling**: Implement a counter to track consecutive silent hops. If the network is entirely silent for 1000 hops (~2 seconds), declare the node out of sync and broadcast an `ND_SYNC` packet.
 
 ## Relevant files
 - `include/message.h` — Refactor to align with the new 28-byte data section.
 - `lib/transceiver/transceiver.h` — Define the new generic packet structure and state machine variables.
-- `lib/transceiver/transceiver.cpp` — Implement the FHSS hopping, CSMA, and timer logic.
+- `lib/transceiver/transceiver.cpp` — Implement the FHSS hopping, CSMA, address filtering, and timer logic.
 - `src/main.cpp` — Timer initialization and interrupt attachment.

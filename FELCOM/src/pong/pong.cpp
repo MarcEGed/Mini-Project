@@ -99,16 +99,14 @@ static void sendState(const PongGame* game) {
         pkt.paddleY = static_cast<int16_t>(game->paddleRight);
     }
 
-    xcvr.setMode(TRANSMIT);
-    xcvr.write(&pkt, sizeof(PongPacket));
-    xcvr.setMode(RECEIVE);
+    xcvr.write(PacketType::PONG, pkt, 0xFF);
 }
 
 static void receivePackets(PongGame* game) {
     PongPacket pkt{};
 
     for (uint8_t i = 0; i < 4; i++) {
-        if (!xcvr.read(&pkt, sizeof(PongPacket))) {
+        if (!xcvr.read(PacketType::PONG, pkt)) {
             break;
         }
 
