@@ -3,28 +3,16 @@
 
 #include <RF24.h>
 #include <stdbool.h>
+#include <esp32-hal-timer.h>
+#include <protocol.h>
 
 enum transceiverMode { TRANSMIT, RECEIVE };
 
-enum class PacketType : uint8_t {
-    PONG = 0,
-    CHAT = 1,
-    AUDIO = 2,
-    ND_SYNC = 3,
-    TEST = 4,
-    ACK = 5
+enum joinState {
+    JOIN_IDLE,
+    JOIN_PASSIVE_LISTEN,
+    JOIN_ACTIVE_WAIT,
 };
-
-struct __attribute__((packed)) FHSSPacket {
-    uint8_t src_node_id;
-    uint8_t dst_node_id;
-    uint16_t packet_type : 4;
-    uint16_t fec : 12;
-    uint8_t data[28];
-};
-
-static_assert(sizeof(FHSSPacket) == 32,
-              "FHSSPacket size must be exactly 32 bytes");
 
 // TODO: research RF24::startConstCarrier.
 struct transceiver {
@@ -32,6 +20,11 @@ struct transceiver {
 
     transceiverMode mode;
     uint8_t channel_idx = 0;
+    hw_timer_t* fhss_timer = nullptr;
+    bool joined = false;
+    joinState join_state = JOIN_IDLE;
+    bool join_heard_packet = false;
+    uint32_t join_state_since_ms = 0;
 
     void setup();
     void setMode(transceiverMode newMode);
@@ -76,6 +69,12 @@ struct transceiver {
 
     bool readAudio(void* data, uint8_t len);
     void hop();
+
+    bool writeRaw(PacketType type, const void* data, uint8_t len,
+                  uint8_t dst_node_id = 0xFF);
+    void startPassiveJoin(uint32_t now_ms);
+    void updateJoin(uint32_t now_ms);
+    void handleBackgroundSync(FHSSPacket* pkt);
 };
 
 #endif  // TRANSCEIVER_H

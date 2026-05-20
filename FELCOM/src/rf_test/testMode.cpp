@@ -2,15 +2,10 @@
 
 #include <config.h>
 
+#include "TestMessage.h"
+
 #define MAX_READS_PER_LOOP 6
 
-struct TestPacket {
-    uint32_t seq;
-    uint8_t payload[24];
-};
-
-static_assert(sizeof(TestPacket) == RF_TEST_PACKET_SIZE,
-              "TestPacket size must match RF_TEST_PACKET_SIZE");
 
 static RFTestStats stats{};
 static bool txMode = false;

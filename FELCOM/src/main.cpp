@@ -7,7 +7,7 @@
 #include <transceiver.h>
 
 #include "chat/chat.h"
-#include "message.h"
+#include "chat/ChatMessage.h"
 #include "pong/pong.h"
 #include "rf_test/testMode.h"
 #include "ui/MenuUI.h"
@@ -19,6 +19,10 @@ transceiver xcvr;
 ChatHandler chat;
 PongGame pong;
 ui appUI;
+
+hw_timer_t* fhss_timer = NULL;
+
+void IRAM_ATTR onFhssTimer() { xcvr.hop(); }
 
 void setup() {
     loggerSetup();
@@ -32,6 +36,16 @@ void setup() {
     xcvr.setup();
     xcvr.setMode(RECEIVE);
     LOG_INFO("Transceiver ready");
+
+    // Setup FHSS Timer: 2ms interval
+    fhss_timer = timerBegin(0, 80, true);
+    timerAttachInterrupt(fhss_timer, &onFhssTimer, true);
+    timerAlarmWrite(fhss_timer, 2000, true);
+    // Don't enable it yet; sync reply enables it on join
+    xcvr.fhss_timer = fhss_timer;
+
+    LOG_INFO("Starting passive join...");
+    xcvr.startPassiveJoin(millis());
 
     chat.init();
     initializeGame(&pong);
@@ -47,6 +61,8 @@ void loop() {
     // LOG_INFO(xcvr.radio->testRPD() ? "Strong signal \> -64dBm on channel %d"
     //                                : "Weak signal \< -64dBm on channel %d",
     //          xcvr.radio->getChannel());
+    xcvr.updateJoin(millis());
+
     int8_t dir = inputDirectionY();
     bool btnDown = inputButtonPressed();
     bool backDown = inputBackPressed();
@@ -80,7 +96,7 @@ void loop() {
 
             // send
             if (chat.input.hasMessage()) {
-                Message msg;
+                ChatMessage msg;
                 chat.input.popMessage(msg, NODE_ID);
                 chat.log.push(msg);
 
@@ -97,7 +113,7 @@ void loop() {
             }
 
             // receive — one read, one push
-            Message incoming;
+            ChatMessage incoming;
             if (xcvr.read(PacketType::CHAT, incoming)) {
                 decrypt(incoming.text, sizeof(incoming.text));
 

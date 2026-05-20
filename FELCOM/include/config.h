@@ -34,12 +34,10 @@
 // additional bytes from pipe 1 per the assigned address width
 const uint8_t PHY_ADDRESSES[6][6] = {"FELCO", "GELCO", "HELCO",
                                      "JELCO", "KELCO", "LELCO"};
-#define NRF24L01_MAX_CHANNEL_INDEX 38
-const uint8_t USABLE_CHANNELS[NRF24L01_MAX_CHANNEL_INDEX + 1] = {
-    13, 14, 15, 18, 19, 20, 23, 24, 25, 28, 29, 30, 33,
-    34, 35, 38, 39, 40, 43, 44, 45, 48, 49, 50, 53, 54,
-    55, 58, 59, 60, 63, 64, 65, 68, 69, 70, 77, 78, 79,
-};
+
+#define HOPPING_CHANNELS_SIZE 6
+const uint8_t HOPPING_CHANNELS[HOPPING_CHANNELS_SIZE] = {110, 111, 112,
+                                                         113, 114, 115};
 
 // Chat Config
 #define MAX_INPUT_LENGTH 25

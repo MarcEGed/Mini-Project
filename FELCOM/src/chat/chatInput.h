@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "message.h"
+#include "chat/ChatMessage.h"
 
 // rotate through control, input through button press
 
@@ -20,7 +20,7 @@ struct chatInput {
     // returns true when a message is ready
     bool hasMessage();
     // fills msg, call after hasMessage()
-    void popMessage(Message& out, uint8_t senderID);
+    void popMessage(ChatMessage& out, uint8_t senderID);
     char selectedChar() const;
 
    private:
