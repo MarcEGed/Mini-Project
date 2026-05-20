@@ -3,6 +3,13 @@
 #include <config.h>
 #include <debug.h>
 
+namespace {
+constexpr uint32_t kJoinListenMs = 6;
+constexpr uint32_t kJoinSendGapMs = 2;
+constexpr uint32_t kJoinJitterMs = 4;
+constexpr uint32_t kJoinScanTimeoutMs = 1500;
+}  // namespace
+
 void transceiver::setup() {
     radio = new RF24(NRF24L01_CE_PIN, NRF24L01_CSN_PIN);
     radio->begin();
@@ -20,6 +27,8 @@ void transceiver::setup() {
     radio->openReadingPipe(1, PHY_ADDRESSES[NRF24L01_PHY_ADDR]);
 
     setMode(RECEIVE);
+
+    randomSeed(micros());
 }
 
 void transceiver::setMode(transceiverMode newMode) {
@@ -74,13 +83,7 @@ bool transceiver::writeRaw(PacketType type, const void* data, uint8_t len,
 bool transceiver::write(PacketType type, const void* data, uint8_t len,
                         uint8_t dst_node_id) {
     if (!joined && fhss_timer) {
-        if (join_state == JOIN_IDLE) {
-            NDSyncData req;
-            req.timer_val = -1;
-            writeRaw(PacketType::ND_SYNC, &req, sizeof(req), 0xFF);
-            join_state = JOIN_ACTIVE_WAIT;
-            join_state_since_ms = millis();
-        }
+        if (join_state == JOIN_IDLE) startActiveScan(millis());
         return false;
     }
 
@@ -145,6 +148,34 @@ void transceiver::hop() {
     channel_idx = (channel_idx + 1) % HOPPING_CHANNELS_SIZE;
 }
 
+bool transceiver::readSyncPacket() {
+    transceiverMode oldMode = mode;
+    if (mode != RECEIVE) setMode(RECEIVE);
+
+    if (!radio->available()) {
+        if (oldMode != RECEIVE) setMode(oldMode);
+        return false;
+    }
+
+    FHSSPacket pkt;
+    radio->read(&pkt, sizeof(FHSSPacket));
+
+    if (pkt.dst_node_id != NODE_ID && pkt.dst_node_id != 0xFF) {
+        if (oldMode != RECEIVE) setMode(oldMode);
+        return false;
+    }
+
+    if (pkt.packet_type != static_cast<uint16_t>(PacketType::ND_SYNC)) {
+        if (oldMode != RECEIVE) setMode(oldMode);
+        return false;
+    }
+
+    handleBackgroundSync(&pkt);
+
+    if (oldMode != RECEIVE) setMode(oldMode);
+    return true;
+}
+
 void transceiver::startPassiveJoin(uint32_t now_ms) {
     if (joined) return;
 
@@ -156,18 +187,64 @@ void transceiver::startPassiveJoin(uint32_t now_ms) {
     setMode(RECEIVE);
 }
 
+void transceiver::startActiveScan(uint32_t now_ms) {
+    if (joined) return;
+
+    join_state = JOIN_ACTIVE_SCAN;
+    join_state_since_ms = now_ms;
+    join_scan_channel_idx = random(0, HOPPING_CHANNELS_SIZE);
+    join_scan_listen_phase = true;
+    join_scan_next_ms = now_ms + random(0, kJoinJitterMs + 1);
+
+    radio->setChannel(HOPPING_CHANNELS[join_scan_channel_idx]);
+    setMode(RECEIVE);
+}
+
 void transceiver::updateJoin(uint32_t now_ms) {
     if (joined) return;
     if (!fhss_timer) return;
 
+    if (join_state == JOIN_IDLE) startActiveScan(now_ms);
+
+    if (join_state == JOIN_ACTIVE_SCAN) {
+        readSyncPacket();
+
+        if (now_ms >= join_scan_next_ms) {
+            if (join_scan_listen_phase) {
+                NDSyncData req;
+                req.timer_val = -1;
+                writeRaw(PacketType::ND_SYNC, &req, sizeof(req), 0xFF);
+                join_scan_listen_phase = false;
+                join_scan_next_ms = now_ms + kJoinSendGapMs;
+            } else {
+                join_scan_channel_idx =
+                    (join_scan_channel_idx + 1) % HOPPING_CHANNELS_SIZE;
+                radio->setChannel(HOPPING_CHANNELS[join_scan_channel_idx]);
+                setMode(RECEIVE);
+                join_scan_listen_phase = true;
+                join_scan_next_ms = now_ms + kJoinListenMs +
+                                    random(0, kJoinJitterMs + 1);
+            }
+        }
+
+        if (now_ms - join_state_since_ms > kJoinScanTimeoutMs) {
+            timerWrite(fhss_timer, 0);
+            timerAlarmEnable(fhss_timer);
+            joined = true;
+            join_state = JOIN_IDLE;
+            LOG_INFO("No sync replies. Formed new network.");
+        }
+        return;
+    }
+
     if (join_state == JOIN_PASSIVE_LISTEN && join_heard_packet) {
-    NDSyncData req;
-    req.timer_val = -1;
-    writeRaw(PacketType::ND_SYNC, &req, sizeof(req), 0xFF);
-    join_state = JOIN_ACTIVE_WAIT;
-    join_state_since_ms = now_ms;
-    join_heard_packet = false;
-    return;
+        NDSyncData req;
+        req.timer_val = -1;
+        writeRaw(PacketType::ND_SYNC, &req, sizeof(req), 0xFF);
+        join_state = JOIN_ACTIVE_WAIT;
+        join_state_since_ms = now_ms;
+        join_heard_packet = false;
+        return;
     }
 
     if (join_state == JOIN_ACTIVE_WAIT) {
@@ -180,26 +257,26 @@ void transceiver::updateJoin(uint32_t now_ms) {
 void transceiver::handleBackgroundSync(FHSSPacket* pkt) {
     if (!fhss_timer || !pkt) return;
 
-    if (!joined) {
-        joined = true;
-    }
-
     NDSyncData* syncData = (NDSyncData*)pkt->data;
     if (syncData->timer_val == -1) {
-        // This is a join request; reply with our exact timer value
-        NDSyncData reply;
-        reply.timer_val = timerRead(fhss_timer);
-        write(PacketType::ND_SYNC, reply,
-              pkt->src_node_id);  // reply back or broadcast? Broadcast helps
-                                  // all. Let's direct reply or broadcast.
-        LOG_INFO("Sent sync reply: %lld", reply.timer_val);
-    } else {
-        if (!joined && join_state == JOIN_ACTIVE_WAIT) {
-            timerWrite(fhss_timer, syncData->timer_val);
+        if (!joined) {
+            timerWrite(fhss_timer, 0);
             timerAlarmEnable(fhss_timer);
             joined = true;
             join_state = JOIN_IDLE;
-            LOG_INFO("Joined network. Timer set to %lld", syncData->timer_val);
         }
+
+        // This is a join request; reply with our exact timer value
+        NDSyncData reply;
+        reply.timer_val = timerRead(fhss_timer);
+        writeRaw(PacketType::ND_SYNC, &reply, sizeof(reply),
+                 pkt->src_node_id);
+        LOG_INFO("Sent sync reply: %lld", reply.timer_val);
+    } else {
+        timerWrite(fhss_timer, syncData->timer_val);
+        timerAlarmEnable(fhss_timer);
+        joined = true;
+        join_state = JOIN_IDLE;
+        LOG_INFO("Joined network. Timer set to %lld", syncData->timer_val);
     }
 }

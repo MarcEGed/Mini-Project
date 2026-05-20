@@ -44,8 +44,8 @@ void setup() {
     // Don't enable it yet; sync reply enables it on join
     xcvr.fhss_timer = fhss_timer;
 
-    LOG_INFO("Starting passive join...");
-    xcvr.startPassiveJoin(millis());
+    LOG_INFO("Starting active scan join...");
+    xcvr.startActiveScan(millis());
 
     chat.init();
     initializeGame(&pong);

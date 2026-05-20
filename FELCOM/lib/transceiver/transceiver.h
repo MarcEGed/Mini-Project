@@ -12,6 +12,7 @@ enum joinState {
     JOIN_IDLE,
     JOIN_PASSIVE_LISTEN,
     JOIN_ACTIVE_WAIT,
+    JOIN_ACTIVE_SCAN,
 };
 
 // TODO: research RF24::startConstCarrier.
@@ -25,6 +26,9 @@ struct transceiver {
     joinState join_state = JOIN_IDLE;
     bool join_heard_packet = false;
     uint32_t join_state_since_ms = 0;
+    uint8_t join_scan_channel_idx = 0;
+    bool join_scan_listen_phase = true;
+    uint32_t join_scan_next_ms = 0;
 
     void setup();
     void setMode(transceiverMode newMode);
@@ -72,7 +76,9 @@ struct transceiver {
 
     bool writeRaw(PacketType type, const void* data, uint8_t len,
                   uint8_t dst_node_id = 0xFF);
+    bool readSyncPacket();
     void startPassiveJoin(uint32_t now_ms);
+    void startActiveScan(uint32_t now_ms);
     void updateJoin(uint32_t now_ms);
     void handleBackgroundSync(FHSSPacket* pkt);
 };
