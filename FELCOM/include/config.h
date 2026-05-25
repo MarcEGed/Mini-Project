@@ -39,6 +39,11 @@ const uint8_t PHY_ADDRESSES[6][6] = {"FELCO", "GELCO", "HELCO",
 const uint8_t HOPPING_CHANNELS[HOPPING_CHANNELS_SIZE] = {110, 111, 112,
                                                          113, 114, 115};
 
+// FHSS join/sync config
+#define FHSS_BOOTSTRAP_TIMEOUT_MS 12
+#define FHSS_BOOTSTRAP_RETRY_MS 2
+#define FHSS_TIMER_PERIOD_US 2000
+
 // Chat Config
 #define MAX_INPUT_LENGTH 25
 #define LOG_SIZE 10

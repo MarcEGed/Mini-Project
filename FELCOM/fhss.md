@@ -62,17 +62,27 @@ A good implementation would be, one that minimizes the amount of messages lost d
 - **`ND_SYNC` Packets**: Contain the hardware timer counter value in the data section. In the current implementation, replies are sent directly to the requester (not broadcast).
   - If the counter is `-1`, the transmitter is out of sync and is requesting a response to synchronize.
 
-To join a network, nodes have two options:
-1. Choose a random channel from the hoppable list, wait for *any* packet to be received, transmit an `ND_SYNC` packet (utilizing random backoff), wait for responses from other nodes, and synchronize with the highest value of the counter received. (Current implementation is non-blocking and driven by the main loop.)
-2. Transmit an `ND_SYNC` packet with a counter value of `-1`, wait for a response, and set the counter value.
+To join a network, nodes perform an active scan:
 
-If no replies are received within the join timeout, the node resets its timer to 0, enables hopping, and forms a new network.
+1. Listen on the bootstrap channel `110` and repeatedly broadcast `ND_SYNC` with `timer_val = -1` for up to the bootstrap timeout.
+2. If any synchronized node replies with a timer value, the initiator sets its timer to that value and joins the network.
+3. If no reply arrives before the timeout, the initiator reads its live hardware timer, preloads it, enables hopping, and broadcasts an `ND_SYNC` with that preload so others can join the newly created network.
 
 ## Solution
 - Low number of hoppable channels.
 - Timer based hopping with implicit clock adjustment on every received packet.
 - Designated Time Master for idle network heartbeats.
 - `ND_SYNC` used for major synchronization, node discovery, and joining networks (similar to ARP).
+
+## Bootstrap synchronization
+
+The first synchronization step is intentionally simple:
+
+1. A node that wants to join listens on channel `110`.
+2. It broadcasts `ND_SYNC` with `counter = -1` for up to `12 ms`.
+3. Nodes that are not synchronized reply with `counter = -1`.
+4. If the initiating node receives a valid timer value, it syncs to that network.
+5. If no synchronized node responds before the timeout, the initiating node creates a new network, reads the live timer counter with `timerRead()`, uses that value as the preload, enables hopping, and broadcasts an `ND_SYNC` update so the rest of the nodes can lock to the new network.
 
 # Implementation Plan
 

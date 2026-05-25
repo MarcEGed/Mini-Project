@@ -40,7 +40,7 @@ void setup() {
     // Setup FHSS Timer: 2ms interval
     fhss_timer = timerBegin(0, 80, true);
     timerAttachInterrupt(fhss_timer, &onFhssTimer, true);
-    timerAlarmWrite(fhss_timer, 2000, true);
+    timerAlarmWrite(fhss_timer, FHSS_TIMER_PERIOD_US, true);
     // Don't enable it yet; sync reply enables it on join
     xcvr.fhss_timer = fhss_timer;
 
