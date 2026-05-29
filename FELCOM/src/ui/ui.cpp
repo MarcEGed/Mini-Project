@@ -5,6 +5,7 @@
 #include "MenuUI.h"
 #include "PongUI.h"
 #include "RFTestUI.h"
+#include "SyncUI.h"
 
 void ui::init(ChatHandler* chatHandler, PongGame* pong, transceiver* xcvr) {
     this->chat = chatHandler;
@@ -33,6 +34,11 @@ void ui::setMode(UIMode newMode) {
 
     if (mode == UIMode::About) {
         aboutUIInitDisplay();
+        return;
+    }
+
+    if (mode == UIMode::Sync) {
+        syncUIInitDisplay(xcvr);
         return;
     }
 
@@ -66,6 +72,10 @@ void ui::update(UIUpdateType domain, uint8_t detail) {
         }
         case UIMode::About: {
             aboutUIUpdate();
+            break;
+        }
+        case UIMode::Sync: {
+            syncUIUpdate(xcvr);
             break;
         }
         default:
@@ -111,4 +121,12 @@ void ui::onRFTestStateChanged() {
     }
 
     update(UIUpdateType::Full, static_cast<uint8_t>(RFTestAutoScreen));
+}
+
+void ui::onSyncStateChanged() {
+    if (mode != UIMode::Sync) {
+        return;
+    }
+
+    update(UIUpdateType::Full);
 }

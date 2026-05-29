@@ -40,13 +40,23 @@ const uint8_t HOPPING_CHANNELS[HOPPING_CHANNELS_SIZE] = {110, 111, 112,
                                                          113, 114, 115};
 
 // FHSS join/sync config
+<<<<<<< Updated upstream
 #define FHSS_BOOTSTRAP_TIMEOUT_MS 12
 #define FHSS_BOOTSTRAP_RETRY_MS 2
+=======
+#define FHSS_BOOTSTRAP_TIMEOUT_MS 2000  // 2s: CSMA can take 30ms/attempt, 12ms was too short
+#define FHSS_BOOTSTRAP_RETRY_MS 50
+>>>>>>> Stashed changes
 #define FHSS_TIMER_PERIOD_US 200000  // 200ms hop period
 #define FHSS_CSMA_BACKOFF_MIN_US 1000
 #define FHSS_CSMA_BACKOFF_MAX_US 10000
 #define FHSS_CSMA_ATTEMPTS 3
 #define FHSS_OUT_OF_SYNC_HOPS 1000
+<<<<<<< Updated upstream
+=======
+// Max timer delta from a known peer that triggers drift correction (~10% of hop period)
+#define FHSS_DRIFT_CORRECTION_US 20000
+>>>>>>> Stashed changes
 
 // Chat Config
 #define MAX_INPUT_LENGTH 25

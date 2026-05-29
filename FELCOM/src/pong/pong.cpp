@@ -144,6 +144,7 @@ static void tickPhysics(PongGame* game) {
         game->ballY + PongGame::kBallSize >= game->paddleLeft &&
         game->ballY <= game->paddleLeft + PongGame::kPaddleHeight) {
         game->ballVX = -game->ballVX * 1.05f;
+        if (game->ballVX > 8.0f) game->ballVX = 8.0f;
         game->ballX = static_cast<float>(PongGame::kPaddleMargin +
                                          PongGame::kPaddleWidth);
     }
@@ -156,6 +157,7 @@ static void tickPhysics(PongGame* game) {
         game->ballY + PongGame::kBallSize >= game->paddleRight &&
         game->ballY <= game->paddleRight + PongGame::kPaddleHeight) {
         game->ballVX = -game->ballVX * 1.05f;
+        if (game->ballVX < -8.0f) game->ballVX = -8.0f;
         game->ballX = static_cast<float>(
             PongGame::kScreenWidth - PongGame::kPaddleMargin -
             PongGame::kPaddleWidth - PongGame::kBallSize);

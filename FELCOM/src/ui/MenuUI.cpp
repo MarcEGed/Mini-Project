@@ -3,7 +3,7 @@
 #include <config.h>
 #include <display.h>
 
-constexpr uint8_t MENU_SELECTION_COUNT = 4;
+constexpr uint8_t MENU_SELECTION_COUNT = 5;
 
 MenuModeSelection g_selection = MenuChat;
 
@@ -33,7 +33,7 @@ void renderMenu() {
 
     // Menu Items
     uint8_t startY = TOP_BAR_HEIGHT + 8;
-    const char* items[] = {"CHAT", "PONG", "RF TEST", "ABOUT"};
+    const char* items[] = {"CHAT", "PONG", "RF TEST", "ABOUT", "SYNC"};
 
     uint8_t maxVisible = 3;
     uint8_t startIndex = 0;

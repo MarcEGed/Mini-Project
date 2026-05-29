@@ -14,6 +14,7 @@
 #include "ui/ChatUI.h"
 #include "ui/PongUI.h"
 #include "ui/RFTestUI.h"
+#include "ui/SyncUI.h"
 #include "ui/ui.h"
 
 transceiver xcvr;
@@ -70,6 +71,7 @@ void loop() {
     //                                : "Weak signal \< -64dBm on channel %d",
     //          xcvr.radio->getChannel());
     xcvr.updateJoin(millis());
+<<<<<<< Updated upstream
     
     // Enable timer once we've joined the network
     static bool timer_enabled = false;
@@ -82,6 +84,23 @@ void loop() {
         LOG_INFO("FHSS timer enabled");
     }
 
+=======
+
+    // Safety net: if joined was cleared externally without going through the
+    // transceiver's own disable paths, ensure the alarm is off.
+    if (!xcvr.joined && xcvr.timer_alarm_active) {
+        timerAlarmDisable(fhss_timer);
+        xcvr.timer_alarm_active = false;
+    }
+
+    // Drain one packet per iteration in all modes.
+    // Non-sync packets are stashed in xcvr.pending_pkt so read() can still get them.
+    xcvr.readSyncPacket();
+
+    // Every 5 s, broadcast our timer so peers can correct drift.
+    xcvr.periodicSync(millis());
+
+>>>>>>> Stashed changes
     int8_t dir = inputDirectionY();
     bool btnDown = inputButtonPressed();
     bool backDown = inputBackPressed();
@@ -113,6 +132,8 @@ void loop() {
                     appUI.setMode(UIMode::Chat);
                 } else if (selection == MenuAbout) {
                     appUI.setMode(UIMode::About);
+                } else if (selection == MenuSync) {
+                    appUI.setMode(UIMode::Sync);
                 } else {
                     appUI.setMode(UIMode::RFTest);
                 }
@@ -166,10 +187,17 @@ void loop() {
         case UIMode::About:
             // About has no active input right now besides back button
             break;
+        case UIMode::Sync:
+            if (syncUITickInput(xcvr, btnDown, millis())) {
+                appUI.onSyncStateChanged();
+            }
+            break;
         default:
             return;
     }
 
-    // Keep this empty unless active section needs periodic redraws.
-    // delay(30);
+    // Yield to the FreeRTOS scheduler so the idle task can feed the watchdog.
+    // delayMicroseconds() inside CSMA busy-waits without yielding; without this
+    // the task watchdog fires after a few seconds of continuous active scan.
+    yield();
 }
