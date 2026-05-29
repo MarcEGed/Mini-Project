@@ -6,9 +6,10 @@
 #include "PongUI.h"
 #include "RFTestUI.h"
 
-void ui::init(ChatHandler* chatHandler, PongGame* pong) {
+void ui::init(ChatHandler* chatHandler, PongGame* pong, transceiver* xcvr) {
     this->chat = chatHandler;
     this->pongGame = pong;
+    this->xcvr = xcvr;
     setMode(mode);
 }
 
@@ -21,7 +22,7 @@ void ui::setMode(UIMode newMode) {
     }
 
     if (mode == UIMode::Chat) {
-        chatUIInitDisplay(chat);
+        chatUIInitDisplay(chat, xcvr);
         return;
     }
 
@@ -47,10 +48,11 @@ void ui::update(UIUpdateType domain, uint8_t detail) {
         case UIMode::Chat: {
             ChatUpdateKind kind = ChatMainScreen;
             if (domain == UIUpdateType::Incremental &&
-                detail == static_cast<uint8_t>(ChatInputLine)) {
-                kind = ChatInputLine;
+                (detail == static_cast<uint8_t>(ChatInputLine) ||
+                 detail == static_cast<uint8_t>(ChatStatusBar))) {
+                kind = static_cast<ChatUpdateKind>(detail);
             }
-            chatUIUpdate(chat, kind);
+            chatUIUpdate(chat, kind, xcvr);
 
             break;
         }

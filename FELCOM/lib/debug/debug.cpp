@@ -2,11 +2,16 @@
 
 #include <Arduino.h>
 #include <config.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/portmacro.h>
 #include <stdio.h>
 
 void LOG(const char* type, const char* msg, va_list args) {
     // do stuff
 #if DEBUG
+    if (xPortInIsrContext()) {
+        return;
+    }
     char logBuffer[256];
     vsnprintf(logBuffer, sizeof(logBuffer), msg, args);
 
@@ -16,7 +21,8 @@ void LOG(const char* type, const char* msg, va_list args) {
     DEBUG_SERIAL.print(": ");
     DEBUG_SERIAL.print(logBuffer);
     DEBUG_SERIAL.println("");
-    DEBUG_SERIAL.flush();
+    // Causing Guru Meditation Error: Core  1 panic'ed (Interrupt wdt timeout on CPU1). 
+    // DEBUG_SERIAL.flush();
 #endif
 }
 

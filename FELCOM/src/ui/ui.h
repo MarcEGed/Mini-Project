@@ -6,6 +6,8 @@
 #include "chat/chat.h"
 #include "pong/pong.h"
 
+struct transceiver;
+
 enum UIMode : uint8_t {
     Menu = 0,
     Chat = 1,
@@ -24,8 +26,9 @@ struct ui {
 
     PongGame* pongGame = nullptr;
     ChatHandler* chat = nullptr;
+    transceiver* xcvr = nullptr;
 
-    void init(ChatHandler* chatHandler, PongGame* pong);
+    void init(ChatHandler* chatHandler, PongGame* pong, transceiver* xcvr);
     void setMode(UIMode newMode);
     void update(UIUpdateType domain, uint8_t detail = 0);
     void onChatInputChanged();

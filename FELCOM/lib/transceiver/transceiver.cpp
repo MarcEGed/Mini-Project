@@ -1,7 +1,9 @@
 #include "transceiver.h"
 
+#include <Arduino.h>
 #include <config.h>
 #include <debug.h>
+#include <string.h>
 
 void transceiver::setup() {
     radio = new RF24(NRF24L01_CE_PIN, NRF24L01_CSN_PIN);
@@ -33,6 +35,47 @@ void transceiver::setMode(transceiverMode newMode) {
     }
 }
 
+void transceiver::noteSyncPeer(uint8_t node_id) {
+    if (node_id == NODE_ID) return;
+    if (node_id == 0xFF) return;
+    if (synced_nodes[node_id]) return;
+
+    synced_nodes[node_id] = true;
+    if (synced_count < 255) {
+        synced_count++;
+    }
+}
+
+uint8_t transceiver::syncedPeerCount() const { return synced_count; }
+
+bool transceiver::isSyncedPeer(uint8_t node_id) const {
+    if (node_id == NODE_ID || node_id == 0xFF) return true;
+    return synced_nodes[node_id];
+}
+
+void transceiver::markActivity() { last_activity_hop = hop_count; }
+
+void transceiver::sendSyncTo(uint8_t node_id) {
+    if (!joined || !fhss_timer) return;
+    if (node_id == NODE_ID || node_id == 0xFF) return;
+    if (synced_nodes[node_id]) return;
+
+    NDSyncData reply;
+    reply.timer_val = timerRead(fhss_timer);
+    bool ok = writeRaw(PacketType::ND_SYNC, &reply, sizeof(reply), node_id);
+    if (ok) {
+        noteSyncPeer(node_id);
+    }
+}
+
+void transceiver::requestSyncFrom(uint8_t node_id) {
+    if (node_id == NODE_ID || node_id == 0xFF) return;
+
+    NDSyncData req;
+    req.timer_val = -1;
+    writeRaw(PacketType::ND_SYNC, &req, sizeof(req), node_id);
+}
+
 bool transceiver::writeRaw(PacketType type, const void* data, uint8_t len,
                            uint8_t dst_node_id) {
     transceiverMode oldMode = mode;
@@ -49,24 +92,35 @@ bool transceiver::writeRaw(PacketType type, const void* data, uint8_t len,
     uint8_t payload_len = len > sizeof(pkt.data) ? sizeof(pkt.data) : len;
     memcpy(pkt.data, data, payload_len);
 
-    uint8_t retries = 5;
-    while (retries-- > 0) {
+    // CSMA with random backoff to avoid collisions
+    bool channel_clear = false;
+    for (uint8_t attempt = 0; attempt < FHSS_CSMA_ATTEMPTS; attempt++) {
         radio->startListening();
         delayMicroseconds(200);
 
         if (!radio->testRPD()) {
-            radio->stopListening();
-            bool ok = radio->write(&pkt, sizeof(FHSSPacket));
-
-            if (oldMode != TRANSMIT) setMode(oldMode);
-            return ok;
+            channel_clear = true;
+            break;
         }
 
-        delay(random(1, 10));
+        radio->stopListening();
+        uint32_t backoff_us =
+            random(FHSS_CSMA_BACKOFF_MIN_US, FHSS_CSMA_BACKOFF_MAX_US + 1);
+        delayMicroseconds(backoff_us);
+    }
+
+    bool ok = false;
+    if (channel_clear) {
+        radio->stopListening();
+        ok = radio->write(&pkt, sizeof(FHSSPacket));
+    }
+
+    if (ok) {
+        markActivity();
     }
 
     if (oldMode != TRANSMIT) setMode(oldMode);
-    return false;
+    return ok;
 }
 
 bool transceiver::write(PacketType type, const void* data, uint8_t len,
@@ -101,6 +155,17 @@ bool transceiver::read(PacketType expected_type, void* data, uint8_t len,
         return false;
     }
 
+    markActivity();
+
+    if (pkt.packet_type != static_cast<uint16_t>(PacketType::ND_SYNC) &&
+        !isSyncedPeer(pkt.src_node_id)) {
+        if (!joined || synced_count == 0) {
+            requestSyncFrom(pkt.src_node_id);
+        } else {
+            sendSyncTo(pkt.src_node_id);
+        }
+    }
+
     if (pkt.packet_type != static_cast<uint16_t>(expected_type)) {
         if (pkt.packet_type == static_cast<uint16_t>(PacketType::ND_SYNC)) {
             handleBackgroundSync(&pkt);
@@ -122,6 +187,18 @@ bool transceiver::read(PacketType expected_type, void* data, uint8_t len,
 }
 
 void transceiver::hop() {
+    hop_count++;
+    if (joined && FHSS_OUT_OF_SYNC_HOPS > 0 &&
+        (hop_count - last_activity_hop) >= FHSS_OUT_OF_SYNC_HOPS) {
+        joined = false;
+        join_state = JOIN_IDLE;
+        if (fhss_timer) {
+            timerAlarmDisable(fhss_timer);
+        }
+        startActiveScan(millis());
+        return;
+    }
+
     if (mode != TRANSMIT) {
         radio->stopListening();
     }
@@ -165,6 +242,10 @@ bool transceiver::readSyncPacket() {
 void transceiver::startActiveScan(uint32_t now_ms) {
     if (joined) return;
 
+    synced_count = 0;
+    memset(synced_nodes, 0, sizeof(synced_nodes));
+    last_activity_hop = hop_count;
+
     join_state = JOIN_ACTIVE_SCAN;
     join_state_since_ms = now_ms;
     join_timeout_ms = now_ms + FHSS_BOOTSTRAP_TIMEOUT_MS;
@@ -198,7 +279,6 @@ void transceiver::updateJoin(uint32_t now_ms) {
             created.timer_val = preload_ticks;
             writeRaw(PacketType::ND_SYNC, &created, sizeof(created), 0xFF);
             LOG_INFO("No synchronized reply. Formed new network.");
-            timerAlarmEnable(fhss_timer);
             return;
         }
 
@@ -217,6 +297,8 @@ void transceiver::updateJoin(uint32_t now_ms) {
 void transceiver::handleBackgroundSync(FHSSPacket* pkt) {
     if (!fhss_timer || !pkt) return;
 
+    markActivity();
+
     NDSyncData* syncData = (NDSyncData*)pkt->data;
     if (syncData->timer_val == -1) {
         NDSyncData reply;
@@ -228,15 +310,23 @@ void transceiver::handleBackgroundSync(FHSSPacket* pkt) {
             return;
         }
 
+        noteSyncPeer(pkt->src_node_id);
         reply.timer_val = timerRead(fhss_timer);
         writeRaw(PacketType::ND_SYNC, &reply, sizeof(reply), pkt->src_node_id);
         LOG_INFO("Sent sync reply: %lld", reply.timer_val);
         return;
     }
 
-    timerWrite(fhss_timer, syncData->timer_val);
-    timerAlarmEnable(fhss_timer);
-    joined = true;
-    join_state = JOIN_IDLE;
-    LOG_INFO("Joined network. Timer set to %lld", syncData->timer_val);
+    if (!joined || synced_count == 0) {
+        timerWrite(fhss_timer, syncData->timer_val);
+        joined = true;
+        join_state = JOIN_IDLE;
+        noteSyncPeer(pkt->src_node_id);
+        LOG_INFO("Joined network. Timer set to %lld", syncData->timer_val);
+        return;
+    }
+
+    if (!isSyncedPeer(pkt->src_node_id)) {
+        sendSyncTo(pkt->src_node_id);
+    }
 }

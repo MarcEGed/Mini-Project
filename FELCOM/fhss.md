@@ -59,6 +59,7 @@ A good implementation would be, one that minimizes the amount of messages lost d
 - `dst_node_id`, if set to `0xFF`, means the packet is broadcast and is meant for everyone on the network.
 - On *every* successful packet reception, nodes should read their current hardware timer. If the timer is slightly off from the expected slot time, they must perform a minor adjustment (`timerWrite`) to compensate for local clock drift. (Not yet implemented.)
 - **Out of Sync**: If a node goes 1000 hops (~2 seconds) with no packets received or transmitted, it is assumed to be out of sync. It must stop hopping and enter a recovery state to broadcast an `ND_SYNC` packet. (Not yet implemented.)
+- If a node receives any non-`ND_SYNC` packet from a sender it is not synchronized with, it should immediately send a unicast `ND_SYNC` reply (with a valid timer value) to help the sender synchronize.
 - **`ND_SYNC` Packets**: Contain the hardware timer counter value in the data section. In the current implementation, replies are sent directly to the requester (not broadcast).
   - If the counter is `-1`, the transmitter is out of sync and is requesting a response to synchronize.
 

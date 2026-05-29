@@ -20,11 +20,16 @@ struct transceiver {
     transceiverMode mode;
     uint8_t channel_idx = 0;
     hw_timer_t* fhss_timer = nullptr;
+    volatile bool needs_hop = false;  // Set by ISR, cleared by main loop
     bool joined = false;
     joinState join_state = JOIN_IDLE;
     uint32_t join_state_since_ms = 0;
     uint32_t join_last_tx_ms = 0;
     uint32_t join_timeout_ms = 0;
+    uint8_t synced_count = 0;
+    bool synced_nodes[256] = {};
+    uint32_t hop_count = 0;
+    uint32_t last_activity_hop = 0;
 
     void setup();
     void setMode(transceiverMode newMode);
@@ -76,6 +81,12 @@ struct transceiver {
     void startActiveScan(uint32_t now_ms);
     void updateJoin(uint32_t now_ms);
     void handleBackgroundSync(FHSSPacket* pkt);
+    void noteSyncPeer(uint8_t node_id);
+    bool isSyncedPeer(uint8_t node_id) const;
+    uint8_t syncedPeerCount() const;
+    void markActivity();
+    void sendSyncTo(uint8_t node_id);
+    void requestSyncFrom(uint8_t node_id);
 };
 
 #endif  // TRANSCEIVER_H
