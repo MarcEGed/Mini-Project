@@ -7,12 +7,8 @@
 #define FELCOM_VERSION "unknown"
 #endif
 // change for each device flashed
-#ifndef SENDER_ID
-#define SENDER_ID 0x01
-#endif
-// in chat name, also change for each
-#ifndef NODE_NAME
-#define NODE_NAME 'b'
+#ifndef NODE_ID
+#define NODE_ID 'B'
 #endif
 
 // Debug config
@@ -22,7 +18,7 @@
 
 // Interference Testing Mode
 #define TEST_PATTERN 0xAB
-#define RF_TEST_PACKET_SIZE 32
+#define RF_TEST_PACKET_SIZE 28
 #define RF_TEST_DELAY_MS 1000
 
 // NRF24L01 config
@@ -38,12 +34,10 @@
 // additional bytes from pipe 1 per the assigned address width
 const uint8_t PHY_ADDRESSES[6][6] = {"FELCO", "GELCO", "HELCO",
                                      "JELCO", "KELCO", "LELCO"};
-#define NRF24L01_MAX_CHANNEL_INDEX 38
-const uint8_t USABLE_CHANNELS[NRF24L01_MAX_CHANNEL_INDEX + 1] = {
-    13, 14, 15, 18, 19, 20, 23, 24, 25, 28, 29, 30, 33,
-    34, 35, 38, 39, 40, 43, 44, 45, 48, 49, 50, 53, 54,
-    55, 58, 59, 60, 63, 64, 65, 68, 69, 70, 77, 78, 79,
-};
+
+#define HOPPING_CHANNELS_SIZE 6
+const uint8_t HOPPING_CHANNELS[HOPPING_CHANNELS_SIZE] = {110, 111, 112,
+                                                         113, 114, 115};
 
 // Chat Config
 #define MAX_INPUT_LENGTH 25

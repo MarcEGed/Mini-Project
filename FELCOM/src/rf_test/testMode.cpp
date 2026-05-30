@@ -2,15 +2,10 @@
 
 #include <config.h>
 
+#include "TestMessage.h"
+
 #define MAX_READS_PER_LOOP 6
 
-struct TestPacket {
-    uint32_t seq;
-    uint8_t payload[28];
-};
-
-static_assert(sizeof(TestPacket) == RF_TEST_PACKET_SIZE,
-              "TestPacket size must match RF_TEST_PACKET_SIZE");
 
 static RFTestStats stats{};
 static bool txMode = false;
@@ -39,9 +34,7 @@ static bool processTx(transceiver& xcvr, uint32_t now) {
         pkt.seq = nextSeq;
         memset(pkt.payload, TEST_PATTERN, sizeof(pkt.payload));
 
-        xcvr.setMode(TRANSMIT);
-        bool ok = xcvr.write(&pkt, sizeof(TestPacket));
-        xcvr.setMode(RECEIVE);
+        bool ok = xcvr.write(PacketType::TEST, pkt, 0xFF); // broadcast ping
 
         if (ok) {
             pendingSeq = nextSeq++;
@@ -54,9 +47,9 @@ static bool processTx(transceiver& xcvr, uint32_t now) {
     }
 
     // read echo
-    TestPacket pong{};
+    TestPacket pong;
     for (uint8_t i = 0; i < MAX_READS_PER_LOOP; i++) {
-        if (!xcvr.read(&pong, sizeof(TestPacket))) break;
+        if (!xcvr.read(PacketType::TEST, pong)) break;
 
         stats.echoed++;
         changed = true;
@@ -77,9 +70,10 @@ static bool processTx(transceiver& xcvr, uint32_t now) {
 static bool processRx(transceiver& xcvr) {
     bool changed = false;
 
-    TestPacket pkt{};
+    TestPacket pkt;
+    uint8_t sender_id;
     for (uint8_t i = 0; i < MAX_READS_PER_LOOP; i++) {
-        if (!xcvr.read(&pkt, sizeof(TestPacket))) break;
+        if (!xcvr.read(PacketType::TEST, pkt, &sender_id)) break;
 
         stats.received++;
         changed = true;
@@ -90,9 +84,7 @@ static bool processRx(transceiver& xcvr) {
             }
 
         // echo back
-        xcvr.setMode(TRANSMIT);
-        xcvr.write(&pkt, sizeof(TestPacket));
-        xcvr.setMode(RECEIVE);
+        xcvr.write(PacketType::TEST, pkt, sender_id);
     }
 
     return changed;

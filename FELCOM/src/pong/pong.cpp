@@ -4,20 +4,7 @@
 #include <debug.h>
 #include <transceiver.h>
 
-struct PongPacket {
-    static constexpr uint8_t kTypeState = 0x01;
-    static constexpr uint8_t kTypeInput = 0x02;
-
-    uint8_t type;
-    uint8_t reserved[3];
-    int16_t paddleY;  // sender's paddle Y
-    int16_t ballX;    // only meaningful from host
-    int16_t ballY;    // only meaningful from host
-    int8_t ballVX;
-    int8_t ballVY;
-    uint8_t scoreHost;
-    uint8_t scoreGuest;
-};
+#include "PongMessage.h"
 
 static PongGame sDefaultGame{};
 static PongGame* sActiveGame = &sDefaultGame;
@@ -99,16 +86,14 @@ static void sendState(const PongGame* game) {
         pkt.paddleY = static_cast<int16_t>(game->paddleRight);
     }
 
-    xcvr.setMode(TRANSMIT);
-    xcvr.write(&pkt, sizeof(PongPacket));
-    xcvr.setMode(RECEIVE);
+    xcvr.write(PacketType::PONG, pkt, 0xFF);
 }
 
 static void receivePackets(PongGame* game) {
     PongPacket pkt{};
 
     for (uint8_t i = 0; i < 4; i++) {
-        if (!xcvr.read(&pkt, sizeof(PongPacket))) {
+        if (!xcvr.read(PacketType::PONG, pkt)) {
             break;
         }
 

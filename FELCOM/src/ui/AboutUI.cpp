@@ -42,20 +42,12 @@ void aboutUIInitDisplay() {
     display.print(ver);
 
     char idStr[16];
-    snprintf(idStr, sizeof(idStr), "0X%02X", SENDER_ID);
+    snprintf(idStr, sizeof(idStr), "0X%02X / %c", NODE_ID, (char)NODE_ID);
     display.setCursor(6, startY + lineSpacing);
     display.print("NODE ID:");
     int16_t idWidth = strlen(idStr) * 6;
-    display.setCursor(SCREEN_WIDTH - idWidth - 11, startY + lineSpacing);
+    display.setCursor(SCREEN_WIDTH - idWidth - 6, startY + lineSpacing);
     display.print(idStr);
-
-    char nameStr[16];
-    snprintf(nameStr, sizeof(nameStr), "%c", (char)NODE_NAME);
-    display.setCursor(6, startY + 2 * lineSpacing);
-    display.print("NAME:");
-    int16_t nameWidth = strlen(nameStr) * 6;
-    display.setCursor(SCREEN_WIDTH - nameWidth - 11, startY + 2 * lineSpacing);
-    display.print(nameStr);
 
     display.display();
 }

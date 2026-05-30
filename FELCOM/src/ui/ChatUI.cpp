@@ -29,10 +29,10 @@ void renderChatMain(chatLog& log, chatInput& input) {
     uint8_t lines = min((uint8_t)3, log.size());
 
     for (uint8_t i = 0; i < lines; i++) {
-        const Message* m = log.get(lines - 1 - i);
+        const ChatMessage* m = log.get(lines - 1 - i);
         display.setCursor(0, i * 16);
         char line[22];
-        snprintf(line, sizeof(line), "%c:%s", m->senderName, m->text);
+        snprintf(line, sizeof(line), "%c:%s", m->senderId, m->text);
         display.print(line);
     }
 

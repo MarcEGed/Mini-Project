@@ -7,7 +7,7 @@
 #include <transceiver.h>
 
 #include "chat/chat.h"
-#include "message.h"
+#include "chat/ChatMessage.h"
 #include "pong/pong.h"
 #include "rf_test/testMode.h"
 #include "ui/MenuUI.h"
@@ -22,7 +22,7 @@ ui appUI;
 
 void setup() {
     loggerSetup();
-    // LOG_INFO("Booting node %c (id=0x%02X)", NODE_NAME, SENDER_ID);
+    // LOG_INFO("Booting node (id=0x%02X)", NODE_ID);
 
     setupDisplay();
     // LOG_INFO("Display ready");
@@ -39,14 +39,11 @@ void setup() {
     // LOG_INFO("Boot complete");
 }
 
-// void encoderIRQ(int dir, bool btn) {
-//     msgInput.tickJoystick(dir, btn);
-// }
-
 void loop() {
     // LOG_INFO(xcvr.radio->testRPD() ? "Strong signal \> -64dBm on channel %d"
     //                                : "Weak signal \< -64dBm on channel %d",
     //          xcvr.radio->getChannel());
+
     int8_t dir = inputDirectionY();
     bool btnDown = inputButtonPressed();
     bool backDown = inputBackPressed();
@@ -80,15 +77,13 @@ void loop() {
 
             // send
             if (chat.input.hasMessage()) {
-                Message msg;
-                chat.input.popMessage(msg, SENDER_ID, NODE_NAME);
+                ChatMessage msg;
+                chat.input.popMessage(msg, NODE_ID);
                 chat.log.push(msg);
 
                 encrypt(msg.text, sizeof(msg.text));
 
-                xcvr.setMode(TRANSMIT);
-                bool ok = xcvr.write(&msg, sizeof(Message));
-                xcvr.setMode(RECEIVE);
+                bool ok = xcvr.write(PacketType::CHAT, msg);
 
                 if (ok)
                     LOG_INFO("Sent: \"%s\"", msg.text);
@@ -99,16 +94,14 @@ void loop() {
             }
 
             // receive — one read, one push
-            Message incoming;
-            if (xcvr.read(&incoming, sizeof(Message))) {
+            ChatMessage incoming;
+            if (xcvr.read(PacketType::CHAT, incoming)) {
                 decrypt(incoming.text, sizeof(incoming.text));
 
-                LOG_INFO("Packet from 0x%02X %c: %s", incoming.senderId,
-                         incoming.senderName, incoming.text);
-                if (incoming.senderId != SENDER_ID) {
-                    chat.log.push(incoming);
-                    appUI.onChatMessageAdded();
-                }
+                LOG_INFO("Packet from 0x%02X: %s", incoming.senderId,
+                         incoming.text);
+                chat.log.push(incoming);
+                appUI.onChatMessageAdded();
             }
 
             break;
