@@ -71,20 +71,6 @@ void loop() {
     //                                : "Weak signal \< -64dBm on channel %d",
     //          xcvr.radio->getChannel());
     xcvr.updateJoin(millis());
-<<<<<<< Updated upstream
-    
-    // Enable timer once we've joined the network
-    static bool timer_enabled = false;
-    if (!xcvr.joined && timer_enabled) {
-        timer_enabled = false;
-    }
-    if (xcvr.joined && !timer_enabled) {
-        timerAlarmEnable(fhss_timer);
-        timer_enabled = true;
-        LOG_INFO("FHSS timer enabled");
-    }
-
-=======
 
     // Safety net: if joined was cleared externally without going through the
     // transceiver's own disable paths, ensure the alarm is off.
@@ -100,7 +86,6 @@ void loop() {
     // Every 5 s, broadcast our timer so peers can correct drift.
     xcvr.periodicSync(millis());
 
->>>>>>> Stashed changes
     int8_t dir = inputDirectionY();
     bool btnDown = inputButtonPressed();
     bool backDown = inputBackPressed();

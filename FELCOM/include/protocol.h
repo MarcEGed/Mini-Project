@@ -25,6 +25,7 @@ static_assert(sizeof(FHSSPacket) == 32,
 
 struct __attribute__((packed)) NDSyncData {
     int64_t timer_val;
+    uint8_t channel_idx;
 };
 
 #endif  // PROTOCOL_H

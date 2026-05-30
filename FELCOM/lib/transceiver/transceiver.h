@@ -30,13 +30,10 @@ struct transceiver {
     bool synced_nodes[256] = {};
     uint32_t hop_count = 0;
     uint32_t last_activity_hop = 0;
-<<<<<<< Updated upstream
-=======
     bool timer_alarm_active = false;
     bool has_pending_pkt = false;
     FHSSPacket pending_pkt = {};
     uint32_t last_sync_bcast_ms = 0;
->>>>>>> Stashed changes
 
     void setup();
     void setMode(transceiverMode newMode);
@@ -94,11 +91,8 @@ struct transceiver {
     void markActivity();
     void sendSyncTo(uint8_t node_id);
     void requestSyncFrom(uint8_t node_id);
-<<<<<<< Updated upstream
-=======
     void triggerManualSync(uint32_t now_ms);
     void periodicSync(uint32_t now_ms);
->>>>>>> Stashed changes
 };
 
 #endif  // TRANSCEIVER_H

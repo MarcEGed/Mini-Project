@@ -62,10 +62,7 @@ void transceiver::sendSyncTo(uint8_t node_id) {
 
     NDSyncData reply;
     reply.timer_val = timerRead(fhss_timer);
-<<<<<<< Updated upstream
-=======
     reply.channel_idx = channel_idx;
->>>>>>> Stashed changes
     bool ok = writeRaw(PacketType::ND_SYNC, &reply, sizeof(reply), node_id);
     if (ok) {
         noteSyncPeer(node_id);
@@ -77,10 +74,7 @@ void transceiver::requestSyncFrom(uint8_t node_id) {
 
     NDSyncData req;
     req.timer_val = -1;
-<<<<<<< Updated upstream
-=======
     req.channel_idx = 0;
->>>>>>> Stashed changes
     writeRaw(PacketType::ND_SYNC, &req, sizeof(req), node_id);
 }
 
@@ -148,9 +142,6 @@ bool transceiver::read(PacketType expected_type, void* data, uint8_t len,
         setMode(RECEIVE);
     }
 
-<<<<<<< Updated upstream
-    if (!radio->available()) {
-=======
     FHSSPacket pkt;
     bool got_pkt = false;
     if (has_pending_pkt) {
@@ -162,19 +153,11 @@ bool transceiver::read(PacketType expected_type, void* data, uint8_t len,
         got_pkt = true;
     }
     if (!got_pkt) {
->>>>>>> Stashed changes
         if (oldMode != RECEIVE) setMode(oldMode);
         return false;
     }
 
-<<<<<<< Updated upstream
-    FHSSPacket pkt;
-    radio->read(&pkt, sizeof(FHSSPacket));
-
-    (void)join_state; // join state not used here in current implementation
-=======
     (void)join_state;
->>>>>>> Stashed changes
 
     if (pkt.dst_node_id != NODE_ID && pkt.dst_node_id != 0xFF) {
         if (oldMode != RECEIVE) setMode(oldMode);
@@ -220,19 +203,13 @@ void transceiver::hop() {
         join_state = JOIN_IDLE;
         if (fhss_timer) {
             timerAlarmDisable(fhss_timer);
-<<<<<<< Updated upstream
-=======
             timer_alarm_active = false;
->>>>>>> Stashed changes
         }
         startActiveScan(millis());
         return;
     }
 
-<<<<<<< Updated upstream
-=======
     channel_idx = channel_idx % HOPPING_CHANNELS_SIZE;  // guard against corruption
->>>>>>> Stashed changes
     if (mode != TRANSMIT) {
         radio->stopListening();
     }
@@ -261,15 +238,12 @@ bool transceiver::readSyncPacket() {
     }
 
     if (pkt.packet_type != static_cast<uint16_t>(PacketType::ND_SYNC)) {
-<<<<<<< Updated upstream
-=======
         // Save to pending buffer so read() can consume it; don't just drop it,
         // otherwise this call in the main loop would silently eat chat/pong packets.
         if (!has_pending_pkt) {
             pending_pkt = pkt;
             has_pending_pkt = true;
         }
->>>>>>> Stashed changes
         if (oldMode != RECEIVE) setMode(oldMode);
         return false;
     }
@@ -313,15 +287,6 @@ void transceiver::updateJoin(uint32_t now_ms) {
 
         if (now_ms >= join_timeout_ms) {
             timerAlarmWrite(fhss_timer, FHSS_TIMER_PERIOD_US, true);
-<<<<<<< Updated upstream
-            uint64_t preload_ticks = timerRead(fhss_timer);
-            timerWrite(fhss_timer, preload_ticks);
-            joined = true;
-            join_state = JOIN_IDLE;
-            
-            NDSyncData created;
-            created.timer_val = preload_ticks;
-=======
             timerWrite(fhss_timer, 0);
             timerAlarmEnable(fhss_timer);  // Enable now — counter is 0, alarm at 200000
             timer_alarm_active = true;
@@ -331,7 +296,6 @@ void transceiver::updateJoin(uint32_t now_ms) {
             NDSyncData created;
             created.timer_val = timerRead(fhss_timer);
             created.channel_idx = channel_idx;
->>>>>>> Stashed changes
             writeRaw(PacketType::ND_SYNC, &created, sizeof(created), 0xFF);
             LOG_INFO("No synchronized reply. Formed new network.");
             return;
@@ -340,10 +304,7 @@ void transceiver::updateJoin(uint32_t now_ms) {
         if (now_ms - join_last_tx_ms >= FHSS_BOOTSTRAP_RETRY_MS) {
             NDSyncData req;
             req.timer_val = -1;
-<<<<<<< Updated upstream
-=======
             req.channel_idx = 0;
->>>>>>> Stashed changes
             writeRaw(PacketType::ND_SYNC, &req, sizeof(req), 0xFF);
             join_last_tx_ms = now_ms;
         }
@@ -353,8 +314,6 @@ void transceiver::updateJoin(uint32_t now_ms) {
     // Passive listen / active-wait removed: spec requires active scan only.
 }
 
-<<<<<<< Updated upstream
-=======
 void transceiver::triggerManualSync(uint32_t now_ms) {
     if (fhss_timer) {
         timerAlarmDisable(fhss_timer);
@@ -369,45 +328,12 @@ void transceiver::triggerManualSync(uint32_t now_ms) {
     startActiveScan(now_ms);
 }
 
->>>>>>> Stashed changes
 void transceiver::handleBackgroundSync(FHSSPacket* pkt) {
     if (!fhss_timer || !pkt) return;
 
     markActivity();
 
     NDSyncData* syncData = (NDSyncData*)pkt->data;
-<<<<<<< Updated upstream
-    if (syncData->timer_val == -1) {
-        NDSyncData reply;
-        if (!joined) {
-            reply.timer_val = -1;
-            writeRaw(PacketType::ND_SYNC, &reply, sizeof(reply),
-                     pkt->src_node_id);
-            LOG_INFO("Bootstrap sync request received from unsynchronized node.");
-            return;
-        }
-
-        noteSyncPeer(pkt->src_node_id);
-        reply.timer_val = timerRead(fhss_timer);
-        writeRaw(PacketType::ND_SYNC, &reply, sizeof(reply), pkt->src_node_id);
-        LOG_INFO("Sent sync reply: %lld", reply.timer_val);
-        return;
-    }
-
-    if (!joined || synced_count == 0) {
-        timerWrite(fhss_timer, syncData->timer_val);
-        joined = true;
-        join_state = JOIN_IDLE;
-        noteSyncPeer(pkt->src_node_id);
-        LOG_INFO("Joined network. Timer set to %lld", syncData->timer_val);
-        return;
-    }
-
-    if (!isSyncedPeer(pkt->src_node_id)) {
-        sendSyncTo(pkt->src_node_id);
-    }
-}
-=======
 
     // --- Sync request (timer_val == -1) ---
     if (syncData->timer_val == -1) {
@@ -510,4 +436,3 @@ void transceiver::periodicSync(uint32_t now_ms) {
     sync.channel_idx = channel_idx;
     writeRaw(PacketType::ND_SYNC, &sync, sizeof(sync), 0xFF);
 }
->>>>>>> Stashed changes
