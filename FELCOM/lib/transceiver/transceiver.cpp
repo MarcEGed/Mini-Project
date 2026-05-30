@@ -73,17 +73,6 @@ bool transceiver::writeRaw(PacketType type, const void* data, uint8_t len,
 
 bool transceiver::write(PacketType type, const void* data, uint8_t len,
                         uint8_t dst_node_id) {
-    if (!joined && fhss_timer) {
-        if (join_state == JOIN_IDLE) {
-            NDSyncData req;
-            req.timer_val = -1;
-            writeRaw(PacketType::ND_SYNC, &req, sizeof(req), 0xFF);
-            join_state = JOIN_ACTIVE_WAIT;
-            join_state_since_ms = millis();
-        }
-        return false;
-    }
-
     return writeRaw(type, data, len, dst_node_id);
 }
 
@@ -102,10 +91,6 @@ bool transceiver::read(PacketType expected_type, void* data, uint8_t len,
     FHSSPacket pkt;
     radio->read(&pkt, sizeof(FHSSPacket));
 
-    if (!joined && join_state == JOIN_PASSIVE_LISTEN) {
-        join_heard_packet = true;
-    }
-
     if (pkt.dst_node_id != NODE_ID && pkt.dst_node_id != 0xFF) {
         if (oldMode != RECEIVE) setMode(oldMode);
         return false;  // Packet not meant for this node
@@ -113,9 +98,6 @@ bool transceiver::read(PacketType expected_type, void* data, uint8_t len,
 
     if (pkt.packet_type != static_cast<uint16_t>(expected_type)) {
         // Intercept ND_SYNC requests
-        if (pkt.packet_type == static_cast<uint16_t>(PacketType::ND_SYNC)) {
-            handleBackgroundSync(&pkt);
-        }
         if (oldMode != RECEIVE) setMode(oldMode);
         return false;  // Packet type mismatch
     }
@@ -143,63 +125,4 @@ void transceiver::hop() {
         radio->startListening();
     }
     channel_idx = (channel_idx + 1) % HOPPING_CHANNELS_SIZE;
-}
-
-void transceiver::startPassiveJoin(uint32_t now_ms) {
-    if (joined) return;
-
-    join_state = JOIN_PASSIVE_LISTEN;
-    join_state_since_ms = now_ms;
-    join_heard_packet = false;
-
-    radio->setChannel(HOPPING_CHANNELS[random(0, HOPPING_CHANNELS_SIZE)]);
-    setMode(RECEIVE);
-}
-
-void transceiver::updateJoin(uint32_t now_ms) {
-    if (joined) return;
-    if (!fhss_timer) return;
-
-    if (join_state == JOIN_PASSIVE_LISTEN && join_heard_packet) {
-    NDSyncData req;
-    req.timer_val = -1;
-    writeRaw(PacketType::ND_SYNC, &req, sizeof(req), 0xFF);
-    join_state = JOIN_ACTIVE_WAIT;
-    join_state_since_ms = now_ms;
-    join_heard_packet = false;
-    return;
-    }
-
-    if (join_state == JOIN_ACTIVE_WAIT) {
-        if (now_ms - join_state_since_ms > 50) {
-            startPassiveJoin(now_ms);
-        }
-    }
-}
-
-void transceiver::handleBackgroundSync(FHSSPacket* pkt) {
-    if (!fhss_timer || !pkt) return;
-
-    if (!joined) {
-        joined = true;
-    }
-
-    NDSyncData* syncData = (NDSyncData*)pkt->data;
-    if (syncData->timer_val == -1) {
-        // This is a join request; reply with our exact timer value
-        NDSyncData reply;
-        reply.timer_val = timerRead(fhss_timer);
-        write(PacketType::ND_SYNC, reply,
-              pkt->src_node_id);  // reply back or broadcast? Broadcast helps
-                                  // all. Let's direct reply or broadcast.
-        LOG_INFO("Sent sync reply: %lld", reply.timer_val);
-    } else {
-        if (!joined && join_state == JOIN_ACTIVE_WAIT) {
-            timerWrite(fhss_timer, syncData->timer_val);
-            timerAlarmEnable(fhss_timer);
-            joined = true;
-            join_state = JOIN_IDLE;
-            LOG_INFO("Joined network. Timer set to %lld", syncData->timer_val);
-        }
-    }
 }

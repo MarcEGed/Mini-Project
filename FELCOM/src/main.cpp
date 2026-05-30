@@ -20,10 +20,6 @@ ChatHandler chat;
 PongGame pong;
 ui appUI;
 
-hw_timer_t* fhss_timer = NULL;
-
-void IRAM_ATTR onFhssTimer() { xcvr.hop(); }
-
 void setup() {
     loggerSetup();
     // LOG_INFO("Booting node (id=0x%02X)", NODE_ID);
@@ -37,31 +33,16 @@ void setup() {
     xcvr.setMode(RECEIVE);
     LOG_INFO("Transceiver ready");
 
-    // Setup FHSS Timer: 2ms interval
-    fhss_timer = timerBegin(0, 80, true);
-    timerAttachInterrupt(fhss_timer, &onFhssTimer, true);
-    timerAlarmWrite(fhss_timer, 2000, true);
-    // Don't enable it yet; sync reply enables it on join
-    xcvr.fhss_timer = fhss_timer;
-
-    LOG_INFO("Starting passive join...");
-    xcvr.startPassiveJoin(millis());
-
     chat.init();
     initializeGame(&pong);
     appUI.init(&chat, &pong);
     // LOG_INFO("Boot complete");
 }
 
-// void encoderIRQ(int dir, bool btn) {
-//     msgInput.tickJoystick(dir, btn);
-// }
-
 void loop() {
     // LOG_INFO(xcvr.radio->testRPD() ? "Strong signal \> -64dBm on channel %d"
     //                                : "Weak signal \< -64dBm on channel %d",
     //          xcvr.radio->getChannel());
-    xcvr.updateJoin(millis());
 
     int8_t dir = inputDirectionY();
     bool btnDown = inputButtonPressed();
