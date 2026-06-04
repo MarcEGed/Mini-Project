@@ -126,3 +126,9 @@ void transceiver::hop() {
     }
     channel_idx = (channel_idx + 1) % HOPPING_CHANNELS_SIZE;
 }
+
+void transceiver::sendSync(uint32_t value) {
+    NDSyncData payload = {0};
+    payload.timer_val = (int64_t)value;
+    write(PacketType::ND_SYNC, payload);
+}

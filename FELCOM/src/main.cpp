@@ -4,10 +4,11 @@
 #include <encryption.h>
 #include <input.h>
 #include <string.h>
+#include <ftimers.h>
 #include <transceiver.h>
 
-#include "chat/chat.h"
 #include "chat/ChatMessage.h"
+#include "chat/chat.h"
 #include "pong/pong.h"
 #include "rf_test/testMode.h"
 #include "ui/MenuUI.h"
@@ -29,6 +30,8 @@ void setup() {
     // LOG_INFO("Display ready");
 
     inputInit();
+
+    initCounter();
 
     xcvr.setup();
     xcvr.setMode(RECEIVE);
@@ -119,7 +122,8 @@ void loop() {
             }
             break;
         case UIMode::SyncTest:
-            if (syncTestUITickInput(xcvr, dir, btnDown, millis())) {
+            if (syncTestUITickInput(xcvr, dir, btnDown, millis(),
+                                    readCounter())) {
                 appUI.onSyncTestStateChanged();
             }
             break;

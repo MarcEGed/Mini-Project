@@ -6,7 +6,7 @@
 struct transceiver;
 
 bool syncTestUITickInput(transceiver& xcvr, int8_t dirY, bool btnDown,
-						 uint32_t now);
+                         uint32_t now, uint32_t counter);
 
 void syncTestUIInitDisplay();
 void syncTestUIUpdate();

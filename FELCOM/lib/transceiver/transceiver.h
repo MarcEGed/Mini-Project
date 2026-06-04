@@ -61,6 +61,8 @@ struct transceiver {
 
     bool writeRaw(PacketType type, const void* data, uint8_t len,
                   uint8_t dst_node_id = 0xFF);
+    
+    void sendSync(uint32_t value);
 };
 
 #endif  // TRANSCEIVER_H

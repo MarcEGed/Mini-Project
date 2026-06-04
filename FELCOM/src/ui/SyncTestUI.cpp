@@ -6,48 +6,18 @@
 #include <protocol.h>
 #include <stdio.h>
 #include <string.h>
+#include <ftimers.h>
 #include <transceiver.h>
 
-static hw_timer_t* gCounterTimer = nullptr;
-static portMUX_TYPE gCounterMux = portMUX_INITIALIZER_UNLOCKED;
-static volatile uint32_t gCounter = 0;
 static uint32_t gNowMs = 0;
 static uint32_t gSyncFlashUntil = 0;
 
 // The counter is used to get the channel we should hope to
-// counter % HOPPING_CHANNELS_SIZE is the index of the channel in HOPPING_CHANNELS we should be on.
-// when we send a sync packet, we should restart the timer, same thing should happen when we receive a sync packet, so that both sides should be hopping in sync.
-// Propagation delay, and processing time is assumed negligible.
-
-static void IRAM_ATTR onCounterTimer() {
-    portENTER_CRITICAL_ISR(&gCounterMux);
-    gCounter++;
-    portEXIT_CRITICAL_ISR(&gCounterMux);
-}
-
-static uint32_t readCounter() {
-    portENTER_CRITICAL(&gCounterMux);
-    uint32_t value = gCounter;
-    portEXIT_CRITICAL(&gCounterMux);
-    return value;
-}
-
-static void setCounter(uint32_t value) {
-    portENTER_CRITICAL(&gCounterMux);
-    gCounter = value;
-    portEXIT_CRITICAL(&gCounterMux);
-}
-
-static void ensureCounterTimer() {
-    if (gCounterTimer != nullptr) {
-        return;
-    }
-
-    gCounterTimer = timerBegin(1, 80, true);
-    timerAttachInterrupt(gCounterTimer, &onCounterTimer, true);
-    timerAlarmWrite(gCounterTimer, 500000, true);
-    timerAlarmEnable(gCounterTimer);
-}
+// counter % HOPPING_CHANNELS_SIZE is the index of the channel in
+// HOPPING_CHANNELS we should be on. when we send a sync packet, we should
+// restart the timer, same thing should happen when we receive a sync packet, so
+// that both sides should be hopping in sync. Propagation delay, and processing
+// time is assumed negligible.
 
 static void render() {
     display.clearDisplay();
@@ -62,8 +32,7 @@ static void render() {
     display.drawFastHLine(0, 12, SCREEN_WIDTH, SSD1306_WHITE);
 
     char line[22];
-    snprintf(line, sizeof(line), "Counter: %lu",
-             (unsigned long)readCounter());
+    snprintf(line, sizeof(line), "Counter: %lu", (unsigned long)readCounter());
     display.setCursor(8, 26);
     display.print(line);
 
@@ -88,20 +57,20 @@ static void render() {
 }
 
 bool syncTestUITickInput(transceiver& xcvr, int8_t dirY, bool btnDown,
-                         uint32_t now) {
+                         uint32_t now, uint32_t counter) {
     (void)dirY;
 
     gNowMs = now;
 
     if (btnDown) {
-        NDSyncData payload = {0};
-        payload.timer_val = static_cast<int64_t>(readCounter());
-        xcvr.write(PacketType::ND_SYNC, payload);
+        xcvr.sendSync(counter);
         gSyncFlashUntil = now + 200;
+        resetCounterTimer();
     }
 
     NDSyncData incoming = {0};
     if (xcvr.read(PacketType::ND_SYNC, incoming)) {
+        resetCounterTimer();
         setCounter(static_cast<uint32_t>(incoming.timer_val));
         gSyncFlashUntil = now + 200;
     }
@@ -110,7 +79,6 @@ bool syncTestUITickInput(transceiver& xcvr, int8_t dirY, bool btnDown,
 }
 
 void syncTestUIInitDisplay() {
-    ensureCounterTimer();
     gNowMs = 0;
     gSyncFlashUntil = 0;
     render();
