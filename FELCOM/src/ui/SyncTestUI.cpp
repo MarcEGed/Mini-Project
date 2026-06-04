@@ -14,6 +14,11 @@ static volatile uint32_t gCounter = 0;
 static uint32_t gNowMs = 0;
 static uint32_t gSyncFlashUntil = 0;
 
+// The counter is used to get the channel we should hope to
+// counter % HOPPING_CHANNELS_SIZE is the index of the channel in HOPPING_CHANNELS we should be on.
+// when we send a sync packet, we should restart the timer, same thing should happen when we receive a sync packet, so that both sides should be hopping in sync.
+// Propagation delay, and processing time is assumed negligible.
+
 static void IRAM_ATTR onCounterTimer() {
     portENTER_CRITICAL_ISR(&gCounterMux);
     gCounter++;
