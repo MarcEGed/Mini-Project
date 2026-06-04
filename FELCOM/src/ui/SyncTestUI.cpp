@@ -1,0 +1,114 @@
+#include "SyncTestUI.h"
+
+#include <Arduino.h>
+#include <config.h>
+#include <display.h>
+#include <protocol.h>
+#include <stdio.h>
+#include <string.h>
+#include <transceiver.h>
+
+static hw_timer_t* gCounterTimer = nullptr;
+static portMUX_TYPE gCounterMux = portMUX_INITIALIZER_UNLOCKED;
+static volatile uint32_t gCounter = 0;
+static uint32_t gNowMs = 0;
+static uint32_t gSyncFlashUntil = 0;
+
+static void IRAM_ATTR onCounterTimer() {
+    portENTER_CRITICAL_ISR(&gCounterMux);
+    gCounter++;
+    portEXIT_CRITICAL_ISR(&gCounterMux);
+}
+
+static uint32_t readCounter() {
+    portENTER_CRITICAL(&gCounterMux);
+    uint32_t value = gCounter;
+    portEXIT_CRITICAL(&gCounterMux);
+    return value;
+}
+
+static void setCounter(uint32_t value) {
+    portENTER_CRITICAL(&gCounterMux);
+    gCounter = value;
+    portEXIT_CRITICAL(&gCounterMux);
+}
+
+static void ensureCounterTimer() {
+    if (gCounterTimer != nullptr) {
+        return;
+    }
+
+    gCounterTimer = timerBegin(1, 80, true);
+    timerAttachInterrupt(gCounterTimer, &onCounterTimer, true);
+    timerAlarmWrite(gCounterTimer, 500000, true);
+    timerAlarmEnable(gCounterTimer);
+}
+
+static void render() {
+    display.clearDisplay();
+    display.setTextColor(SSD1306_WHITE);
+    display.setTextSize(1);
+
+    const char* title = "SYNC TEST";
+    int16_t titleWidth = strlen(title) * 6;
+    display.setCursor((SCREEN_WIDTH - titleWidth) / 2, 2);
+    display.print(title);
+
+    display.drawFastHLine(0, 12, SCREEN_WIDTH, SSD1306_WHITE);
+
+    char line[22];
+    snprintf(line, sizeof(line), "Counter: %lu",
+             (unsigned long)readCounter());
+    display.setCursor(8, 26);
+    display.print(line);
+
+    const int16_t btnW = 64;
+    const int16_t btnH = 14;
+    const int16_t btnX = (SCREEN_WIDTH - btnW) / 2;
+    const int16_t btnY = 44;
+
+    bool highlight = (gSyncFlashUntil != 0) && (gNowMs < gSyncFlashUntil);
+    if (highlight) {
+        display.fillRect(btnX, btnY, btnW, btnH, SSD1306_WHITE);
+        display.setTextColor(SSD1306_BLACK, SSD1306_WHITE);
+    } else {
+        display.drawRect(btnX, btnY, btnW, btnH, SSD1306_WHITE);
+        display.setTextColor(SSD1306_WHITE, SSD1306_BLACK);
+    }
+
+    display.setCursor(btnX + 18, btnY + 3);
+    display.print("SYNC");
+
+    display.display();
+}
+
+bool syncTestUITickInput(transceiver& xcvr, int8_t dirY, bool btnDown,
+                         uint32_t now) {
+    (void)dirY;
+
+    gNowMs = now;
+
+    if (btnDown) {
+        NDSyncData payload = {0};
+        payload.timer_val = static_cast<int64_t>(readCounter());
+        xcvr.write(PacketType::ND_SYNC, payload);
+        gSyncFlashUntil = now + 200;
+    }
+
+    NDSyncData incoming = {0};
+    if (xcvr.read(PacketType::ND_SYNC, incoming)) {
+        setCounter(static_cast<uint32_t>(incoming.timer_val));
+        gSyncFlashUntil = now + 200;
+    }
+
+    return true;
+}
+
+void syncTestUIInitDisplay() {
+    ensureCounterTimer();
+    gNowMs = 0;
+    gSyncFlashUntil = 0;
+    render();
+}
+
+void syncTestUIUpdate() { render(); }

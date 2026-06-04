@@ -5,6 +5,7 @@
 #include "MenuUI.h"
 #include "PongUI.h"
 #include "RFTestUI.h"
+#include "SyncTestUI.h"
 
 void ui::init(ChatHandler* chatHandler, PongGame* pong) {
     this->chat = chatHandler;
@@ -27,6 +28,11 @@ void ui::setMode(UIMode newMode) {
 
     if (mode == UIMode::Pong) {
         pongUIInitDisplay(pongGame);
+        return;
+    }
+
+    if (mode == UIMode::SyncTest) {
+        syncTestUIInitDisplay();
         return;
     }
 
@@ -60,6 +66,10 @@ void ui::update(UIUpdateType domain, uint8_t detail) {
         }
         case UIMode::RFTest: {
             rfTestUIUpdate(RFTestAutoScreen);
+            break;
+        }
+        case UIMode::SyncTest: {
+            syncTestUIUpdate();
             break;
         }
         case UIMode::About: {
@@ -109,4 +119,12 @@ void ui::onRFTestStateChanged() {
     }
 
     update(UIUpdateType::Full, static_cast<uint8_t>(RFTestAutoScreen));
+}
+
+void ui::onSyncTestStateChanged() {
+    if (mode != UIMode::SyncTest) {
+        return;
+    }
+
+    update(UIUpdateType::Full);
 }

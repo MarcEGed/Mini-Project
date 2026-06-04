@@ -7,7 +7,8 @@ enum MenuModeSelection : uint8_t {
     MenuChat = 0,
     MenuPong = 1,
     MenuRFTest = 2,
-    MenuAbout = 3,
+    MenuSyncTest = 3,
+    MenuAbout = 4,
 };
 
 void menuUIInitDisplay();

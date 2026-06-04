@@ -13,6 +13,7 @@
 #include "ui/MenuUI.h"
 #include "ui/PongUI.h"
 #include "ui/RFTestUI.h"
+#include "ui/SyncTestUI.h"
 #include "ui/ui.h"
 
 transceiver xcvr;
@@ -63,6 +64,8 @@ void loop() {
                     appUI.setMode(UIMode::Pong);
                 } else if (selection == MenuChat) {
                     appUI.setMode(UIMode::Chat);
+                } else if (selection == MenuSyncTest) {
+                    appUI.setMode(UIMode::SyncTest);
                 } else if (selection == MenuAbout) {
                     appUI.setMode(UIMode::About);
                 } else {
@@ -113,6 +116,11 @@ void loop() {
         case UIMode::RFTest:
             if (rfTestUITickInput(xcvr, dir, btnDown, millis())) {
                 appUI.onRFTestStateChanged();
+            }
+            break;
+        case UIMode::SyncTest:
+            if (syncTestUITickInput(xcvr, dir, btnDown, millis())) {
+                appUI.onSyncTestStateChanged();
             }
             break;
         case UIMode::About:
