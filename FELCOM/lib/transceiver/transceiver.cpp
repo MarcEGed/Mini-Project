@@ -8,7 +8,7 @@ void transceiver::setup() {
     radio->begin();
     radio->setPALevel(NRF24L01_POWER_LEVEL);
     radio->setDataRate(NRF24L01_DATA_RATE);
-    radio->setChannel(HOPPING_CHANNELS[channel_idx]);
+    radio->setChannel(HOPPING_CHANNELS[0]);
     radio->setPayloadSize(sizeof(FHSSPacket));
     // radio->enableDynamicPayloads();
 
@@ -120,15 +120,26 @@ void transceiver::hop() {
     if (mode != TRANSMIT) {
         radio->stopListening();
     }
-    radio->setChannel(HOPPING_CHANNELS[channel_idx]);
+    radio->setChannel(HOPPING_CHANNELS[0]);
     if (mode != TRANSMIT) {
         radio->startListening();
     }
-    channel_idx = (channel_idx + 1) % HOPPING_CHANNELS_SIZE;
+    //channel_idx = (channel_idx + 1) % HOPPING_CHANNELS_SIZE;
 }
 
 void transceiver::sendSync(uint32_t value) {
     NDSyncData payload = {0};
     payload.timer_val = (int64_t)value;
     write(PacketType::ND_SYNC, payload);
+}
+
+void transceiver::setChannel(uint8_t channel) {
+    bool wasListening = (mode == RECEIVE);
+    if (wasListening) {
+        radio->stopListening();
+    }
+    radio->setChannel(channel);
+    if (wasListening) {
+        radio->startListening();
+    }
 }

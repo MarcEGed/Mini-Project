@@ -70,8 +70,7 @@ bool syncTestUITickInput(transceiver& xcvr, int8_t dirY, bool btnDown,
 
     NDSyncData incoming = {0};
     if (xcvr.read(PacketType::ND_SYNC, incoming)) {
-        resetCounterTimer();
-        setCounter(static_cast<uint32_t>(incoming.timer_val));
+        setCounter(static_cast<uint32_t>(incoming.timer_val)); 
         gSyncFlashUntil = now + 200;
     }
 

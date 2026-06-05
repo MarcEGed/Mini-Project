@@ -12,7 +12,7 @@ struct transceiver {
     RF24* radio;
 
     transceiverMode mode;
-    uint8_t channel_idx = 0;
+    //uint8_t channel_idx = 0;
     hw_timer_t* fhss_timer = nullptr;
 
     void setup();
@@ -63,6 +63,8 @@ struct transceiver {
                   uint8_t dst_node_id = 0xFF);
     
     void sendSync(uint32_t value);
+
+    void setChannel(uint8_t channel);
 };
 
 #endif  // TRANSCEIVER_H

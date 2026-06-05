@@ -34,6 +34,7 @@ void setup() {
     initCounter();
 
     xcvr.setup();
+    xcvr.setChannel(HOPPING_CHANNELS[readCounter() % HOPPING_CHANNELS_SIZE]);
     xcvr.setMode(RECEIVE);
     LOG_INFO("Transceiver ready");
 
@@ -47,6 +48,15 @@ void loop() {
     // LOG_INFO(xcvr.radio->testRPD() ? "Strong signal \> -64dBm on channel %d"
     //                                : "Weak signal \< -64dBm on channel %d",
     //          xcvr.radio->getChannel());
+
+    static uint32_t lastHop = 0;
+    uint32_t currentHop = readCounter() % HOPPING_CHANNELS_SIZE;
+    if (currentHop != lastHop) {
+        lastHop = currentHop;
+        xcvr.setChannel(HOPPING_CHANNELS[currentHop]);
+        xcvr.setMode(RECEIVE);
+    }
+
 
     int8_t dir = inputDirectionY();
     bool btnDown = inputButtonPressed();

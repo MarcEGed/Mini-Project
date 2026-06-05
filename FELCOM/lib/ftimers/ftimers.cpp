@@ -14,6 +14,17 @@ void initCounter() {
 
 void resetCounterTimer() { timerWrite(COUNTER_TIMER, 0); }
 
-uint32_t readCounter() { return COUNTER; }
+uint32_t readCounter() {
+    uint32_t value;
+    portDISABLE_INTERRUPTS();
+    value = COUNTER;
+    portENABLE_INTERRUPTS();
+    return value;
+}
 
-void setCounter(uint32_t value) { COUNTER = value; }
+void setCounter(uint32_t value) {
+    timerAlarmDisable(COUNTER_TIMER);
+    COUNTER = value; 
+    timerWrite(COUNTER_TIMER, 0);
+    timerAlarmEnable(COUNTER_TIMER);
+}
