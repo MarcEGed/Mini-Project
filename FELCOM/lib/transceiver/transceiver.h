@@ -87,6 +87,16 @@ struct transceiver {
      */
     void poll();
 
+    /**
+     * @brief Print a one-line FEC counter summary to the serial log, but only
+     *        if a counter changed since the last print. Call it throttled (e.g.
+     *        every few seconds) — a serial flush blocks ~50 ms at 9600 baud.
+     */
+    void logFecStats();
+
+    /** @brief Read-only access to the live FEC diagnostic counters. */
+    const FecStats& fecStats() const { return fec.stats; }
+
     // --- Template payload helpers ----------------------------------------
     template <typename T>
     bool write(PacketType type, const T& data, uint8_t dst_node_id = 0xFF) {
@@ -135,6 +145,9 @@ struct transceiver {
     bool rx_has;
     FHSSPacket rx_pkt;
     uint8_t rx_src;
+
+    // Last printed counter total, so logFecStats() stays quiet when idle.
+    uint32_t stats_printed_sum;
 
     // Read+dispatch one frame: ACK→handleAck, AUDIO→assemble, TEST→buffer raw,
     // CRC-valid app frame→buffer (+auto-ACK if ARQ). Returns false when no

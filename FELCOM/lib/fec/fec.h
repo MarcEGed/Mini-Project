@@ -16,9 +16,27 @@
 #include <stddef.h>
 #include <stdint.h>
 
+// Diagnostic counters so the serial monitor can show what the FEC layer is
+// doing. Cheap to update (plain increments); printed as a throttled summary by
+// the transceiver, never per-packet (serial flush blocks for ~50 ms at 9600).
+struct FecStats {
+    uint32_t crc_ok;        // protected packets whose CRC verified
+    uint32_t crc_fail;      // protected packets dropped on CRC mismatch
+    uint32_t arq_sent;      // reliable messages started (writeReliable calls)
+    uint32_t arq_retx;      // ARQ retransmissions
+    uint32_t arq_acked;     // reliable messages confirmed by an ACK
+    uint32_t arq_failed;    // reliable messages that exhausted retries
+    uint32_t ack_rx;        // matching ACKs received
+    uint32_t ack_tx;        // ACKs sent back to senders
+    uint32_t aud_blocks;    // XOR audio blocks finalised
+    uint32_t aud_recovered; // audio slots reconstructed via XOR parity
+    uint32_t aud_lost;      // audio slots missing and unrecoverable
+};
+
 // All mutable FEC state lives here. The transceiver embeds one instance so the
 // FEC behaviour is "inbuilt" within the transceiver rather than global.
 struct FecState {
+    FecStats stats;
     // --- ARQ (transmit side) ---
     uint16_t tx_seq;        // monotonic sequence counter for outgoing ARQ frames
     bool arq_waiting;       // an ARQ send is awaiting its ACK

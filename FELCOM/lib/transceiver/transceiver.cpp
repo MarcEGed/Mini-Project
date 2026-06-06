@@ -22,6 +22,7 @@ void transceiver::setup() {
 
     fecInit(fec);
     rx_has = false;
+    stats_printed_sum = 0;
 
     setMode(RECEIVE);
 }
@@ -135,7 +136,9 @@ bool transceiver::writeReliable(PacketType type, const void* data, uint8_t len,
     pkt.dst_node_id = dst_node_id;
     fecEncodeProtected(pkt, type, FecScheme::CRC_ARQ, 0, 0, wire, FEC_USER_SIZE);
 
+    fec.stats.arq_sent++;
     for (uint8_t attempt = 0; attempt <= FEC_ARQ_MAX_RETRIES; attempt++) {
+        if (attempt > 0) fec.stats.arq_retx++;
         fec.arq_seq = seq;
         fec.arq_acked = false;
         fec.arq_waiting = true;
@@ -147,14 +150,18 @@ bool transceiver::writeReliable(PacketType type, const void* data, uint8_t len,
             serviceRx();  // drains ACK/audio; sets arq_acked on a match
             if (fec.arq_acked) {
                 fec.arq_waiting = false;
+                fec.stats.arq_acked++;
+                LOG_INFO("FEC ARQ: type=%u seq=%u acked (tries=%u)",
+                         (unsigned)type, (unsigned)seq, (unsigned)(attempt + 1));
                 return true;
             }
         }
-        LOG_INFO("FEC: ARQ timeout seq=%u attempt=%u", (unsigned)seq,
-                 (unsigned)attempt);
     }
 
     fec.arq_waiting = false;
+    fec.stats.arq_failed++;
+    LOG_INFO("FEC ARQ: type=%u seq=%u FAILED (no ack after %u tries)",
+             (unsigned)type, (unsigned)seq, (unsigned)(FEC_ARQ_MAX_RETRIES + 1));
     return false;  // delivery not confirmed
 }
 
@@ -171,6 +178,7 @@ void transceiver::sendAck(uint8_t dst_node_id, uint16_t seq) {
     fecEncodeProtected(pkt, PacketType::ACK, FecScheme::CRC, 0, 0, &ack,
                        sizeof(ack));
     transmitPacket(pkt);
+    fec.stats.ack_tx++;
 }
 
 void transceiver::handleAck(const FHSSPacket& pkt) {
@@ -178,6 +186,7 @@ void transceiver::handleAck(const FHSSPacket& pkt) {
     memcpy(&ack, pkt.data, sizeof(ack));
     if (fec.arq_waiting && ack.status == 0 && ack.seq == fec.arq_seq) {
         fec.arq_acked = true;
+        fec.stats.ack_rx++;
     }
 }
 
@@ -204,10 +213,13 @@ bool transceiver::serviceRx() {
     }
 
     // All other types are CRC-protected. A failed CRC means corruption → drop.
+    // Counted, never logged per-packet: a serial flush blocks ~50 ms at 9600
+    // baud, which under noise would wreck radio timing. See logFecStats().
     if (!fecCheckCrc(pkt)) {
-        LOG_INFO("FEC: CRC fail (type=%u)", (unsigned)type);
+        fec.stats.crc_fail++;
         return true;
     }
+    fec.stats.crc_ok++;
 
     if (type == PacketType::ACK) {
         handleAck(pkt);  // never buffered, never re-ACKed
@@ -336,6 +348,25 @@ void transceiver::hop() {
     if (mode != TRANSMIT) {
         radio->startListening();
     }
+}
+
+void transceiver::logFecStats() {
+    const FecStats& s = fec.stats;
+    uint32_t sum = s.crc_ok + s.crc_fail + s.arq_sent + s.arq_retx +
+                   s.arq_acked + s.arq_failed + s.ack_rx + s.ack_tx +
+                   s.aud_blocks + s.aud_recovered + s.aud_lost;
+    if (sum == stats_printed_sum) return;  // nothing new since the last print
+    stats_printed_sum = sum;
+
+    LOG_INFO(
+        "FEC | CRC ok=%lu bad=%lu | ARQ tx=%lu retx=%lu ack=%lu fail=%lu | "
+        "ACK rx=%lu tx=%lu | AUDIO blk=%lu rec=%lu lost=%lu",
+        (unsigned long)s.crc_ok, (unsigned long)s.crc_fail,
+        (unsigned long)s.arq_sent, (unsigned long)s.arq_retx,
+        (unsigned long)s.arq_acked, (unsigned long)s.arq_failed,
+        (unsigned long)s.ack_rx, (unsigned long)s.ack_tx,
+        (unsigned long)s.aud_blocks, (unsigned long)s.aud_recovered,
+        (unsigned long)s.aud_lost);
 }
 
 void transceiver::setChannel(uint8_t channel) {

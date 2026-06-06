@@ -58,6 +58,14 @@ void loop() {
         LOG_INFO("Hopped to channel %d", HOPPING_CHANNELS[currentHop]);
     }
 
+    // Throttled FEC health summary on the serial monitor (prints only when a
+    // counter changed, at most once every 5 s, to avoid blocking serial flush).
+    static uint32_t lastFecStatsMs = 0;
+    if (millis() - lastFecStatsMs >= 5000) {
+        lastFecStatsMs = millis();
+        xcvr.logFecStats();
+    }
+
 
     int8_t dir = inputDirectionY();
     bool btnDown = inputButtonPressed();

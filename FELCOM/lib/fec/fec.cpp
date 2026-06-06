@@ -86,7 +86,12 @@ static void fecAudioFinalizeBlock(FecState& s) {
             s.rx_slot[missing][b] = v;
         }
         s.rx_slot_valid[missing] = true;
+        s.stats.aud_recovered++;
+        missingCount = 0;
     }
+
+    s.stats.aud_blocks++;
+    s.stats.aud_lost += missingCount;  // slots still missing after recovery
 
     // Deliver every slot we have (recovered or originally received), in order.
     for (uint8_t i = 0; i < FEC_XOR_BLOCK_SIZE; i++) {
