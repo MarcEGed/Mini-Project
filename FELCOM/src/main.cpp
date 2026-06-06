@@ -100,7 +100,8 @@ void loop() {
 
                 encrypt(msg.text, sizeof(msg.text));
 
-                bool ok = xcvr.write(PacketType::CHAT, msg);
+                // CHAT is reliable: CRC + ARQ (retransmit until ACKed).
+                bool ok = xcvr.writeReliable(PacketType::CHAT, msg);
 
                 //if (ok)
                 //    LOG_INFO("Sent: \"%s\"", msg.text);

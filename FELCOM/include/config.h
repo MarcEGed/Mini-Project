@@ -40,9 +40,11 @@ const uint8_t HOPPING_CHANNELS[HOPPING_CHANNELS_SIZE] = {110, 111, 112,
                                                          113, 114, 115};
 
 // Chat Config
-#define MAX_INPUT_LENGTH 25
+// Shrunk from 25/22 so the chat wire frame (2B seq + msg + 2B CRC) fits the
+// 28-byte data[] region once the FEC layer reserves seq + CRC. See fec.md.
+#define MAX_INPUT_LENGTH 18
 #define LOG_SIZE 10
-#define MSG_MAX_TEXT 22
+#define MSG_MAX_TEXT 18
 
 // Encryption Config
 #define XOR_KEY {0xAA, 0x3F, 0x12, 0x55}
@@ -86,10 +88,16 @@ const uint8_t HOPPING_CHANNELS[HOPPING_CHANNELS_SIZE] = {110, 111, 112,
 #define DAC_OUT_PIN 26  // ESP32 DAC2 — fixed by hardware
 
 // Audio config
-#define AUDIO_SAMPLE_RATE 8000   // Hz
-#define AUDIO_PACKET_SAMPLES 28  // 1+1+2+28 = 32 bytes exactly
+#define AUDIO_SAMPLE_RATE 8000           // Hz
+#define AUDIO_PACKET_SAMPLES 24  // seq(2) + samples(24) = 26 user bytes (FEC_AUDIO_SAMPLES)
 // 0 = disabled, 1 = TX (mic), 2 = RX (speaker), 3 = both if ever needed
 #define AUDIO_ENABLED 1
+
+// FEC config — see "FEC Prototype — Design Document" (fec.md)
+#define FEC_XOR_BLOCK_SIZE 4    // data packets per XOR block (+1 parity packet)
+#define FEC_ARQ_TIMEOUT_MS 200  // wait for ACK before retransmit
+#define FEC_ARQ_MAX_RETRIES 3   // max ARQ retransmissions
+#define FEC_AUDIO_RX_QUEUE 8    // recovered audio payloads buffered for playback
 
 // Pong config
 #define PONG_SCORE_TO_WIN 7

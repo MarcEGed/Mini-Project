@@ -6,19 +6,11 @@
 #include <driver/dac.h>
 #include <debug/debug.h>
 #include "config.h"
+#include "protocol.h"
 #include "transceiver.h"
 
-#define MSG_TYPE_CHAT  0x01
-#define MSG_TYPE_AUDIO 0x02
-
-struct AudioPacket {
-    uint8_t  type;                          // MSG_TYPE_AUDIO
-    uint8_t  sender_id;
-    uint16_t seq;
-    uint8_t  samples[AUDIO_PACKET_SAMPLES]; // 8-bit PCM, unsigned
-};
-
-static_assert(sizeof(AudioPacket) == 32, "AudioPacket must be 32 bytes");
+// Audio uses AudioPayload (protocol.h) carried by the transceiver's XOR block
+// FEC path. The sender identity comes from the FHSS header, not the payload.
 
 class AudioHandler {
 public:
@@ -66,9 +58,10 @@ public:
     // Call every loop() on the RX node
     void rxTick() {
 #if AUDIO_ENABLED == 2 || AUDIO_ENABLED == 3
-        AudioPacket pkt;
-        if (!_radio->readAudio(&pkt, sizeof(pkt))) return;
-        if (pkt.type != MSG_TYPE_AUDIO) return;
+        // audioRx() services the radio, runs XOR block recovery, and returns the
+        // next playable frame (original or reconstructed).
+        AudioPayload pkt;
+        if (!_radio->audioRx(pkt)) return;
 
         // Write samples to DAC with correct timing
         uint32_t interval_us = 1000000UL / AUDIO_SAMPLE_RATE;
@@ -116,24 +109,12 @@ private:
     }
 
     void _sendPacket(uint8_t* samples) {
-        // Find min/max to see if signal is moving at all
-        uint8_t mn = 255, mx = 0;
-        for (uint8_t i = 0; i < AUDIO_PACKET_SAMPLES; i++) {
-            if (samples[i] < mn) mn = samples[i];
-            if (samples[i] > mx) mx = samples[i];
-        }
-        //LOG_INFO("Audio TX | min=%d max=%d s0=%d s1=%d s2=%d s3=%d",
-                //mn, mx, samples[0], samples[1], samples[2], samples[3]);
-
-        AudioPacket pkt;
-        pkt.type      = MSG_TYPE_AUDIO;
-        pkt.sender_id = SENDER_ID;
-        pkt.seq       = _seq++;
+        AudioPayload pkt;
+        pkt.seq = _seq++;
         memcpy(pkt.samples, samples, AUDIO_PACKET_SAMPLES);
 
-        _radio->setMode(TRANSMIT);
-        _radio->write(&pkt, sizeof(pkt));
-        _radio->setMode(RECEIVE);
+        // XOR block FEC + CRC + CSMA are all handled inside the transceiver.
+        _radio->audioTx(pkt);
     }
 };
 
