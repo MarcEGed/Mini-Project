@@ -1,11 +1,13 @@
 #include "ui.h"
 
 #include "AboutUI.h"
+#include "AudioUI.h"
 #include "ChatUI.h"
 #include "MenuUI.h"
 #include "PongUI.h"
 #include "RFTestUI.h"
 #include "SyncTestUI.h"
+#include "audio.h"
 
 void ui::init(ChatHandler* chatHandler, PongGame* pong) {
     this->chat = chatHandler;
@@ -14,10 +16,22 @@ void ui::init(ChatHandler* chatHandler, PongGame* pong) {
 }
 
 void ui::setMode(UIMode newMode) {
+    // Tear down audio when leaving the AUDIO screen (silence DAC, radio back
+    // to RECEIVE).
+    if (mode == UIMode::Audio && newMode != UIMode::Audio) {
+        audio::leave();
+    }
+
     mode = newMode;
 
     if (mode == UIMode::Menu) {
         menuUIInitDisplay();
+        return;
+    }
+
+    if (mode == UIMode::Audio) {
+        audio::enter();
+        audioUIInitDisplay();
         return;
     }
 
@@ -76,6 +90,10 @@ void ui::update(UIUpdateType domain, uint8_t detail) {
             aboutUIUpdate();
             break;
         }
+        case UIMode::Audio: {
+            audioUIUpdate();
+            break;
+        }
         default:
             break;
     }
@@ -123,6 +141,14 @@ void ui::onRFTestStateChanged() {
 
 void ui::onSyncTestStateChanged() {
     if (mode != UIMode::SyncTest) {
+        return;
+    }
+
+    update(UIUpdateType::Full);
+}
+
+void ui::onAudioStateChanged() {
+    if (mode != UIMode::Audio) {
         return;
     }
 

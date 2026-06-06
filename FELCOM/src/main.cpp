@@ -7,10 +7,12 @@
 #include <ftimers.h>
 #include <transceiver.h>
 
+#include "audio.h"
 #include "chat/ChatMessage.h"
 #include "chat/chat.h"
 #include "pong/pong.h"
 #include "rf_test/testMode.h"
+#include "ui/AudioUI.h"
 #include "ui/MenuUI.h"
 #include "ui/PongUI.h"
 #include "ui/RFTestUI.h"
@@ -38,6 +40,8 @@ void setup() {
     xcvr.setMode(RECEIVE);
     LOG_INFO("Transceiver ready");
 
+    audio::begin(&xcvr);  // I2S mic (stereo slot0) + DAC; idle until AUDIO screen
+
     chat.init();
     initializeGame(&pong);
     appUI.init(&chat, &pong);
@@ -45,27 +49,27 @@ void setup() {
 }
 
 void loop() {
-    // LOG_INFO(xcvr.radio->testRPD() ? "Strong signal \> -64dBm on channel %d"
-    //                                : "Weak signal \< -64dBm on channel %d",
-    //          xcvr.radio->getChannel());
-
     static uint32_t lastHop = 0;
     uint32_t currentHop = readCounter() % HOPPING_CHANNELS_SIZE;
     if (currentHop != lastHop) {
         lastHop = currentHop;
         xcvr.setChannel(HOPPING_CHANNELS[currentHop]);
         xcvr.setMode(RECEIVE);
-        LOG_INFO("Hopped to channel %d", HOPPING_CHANNELS[currentHop]);
+        // Skip the serial log during audio — flush() stalls ~50 ms and glitches
+        // playback. The hop itself still happens.
+        if (appUI.mode != UIMode::Audio) {
+            LOG_INFO("Hopped to channel %d", HOPPING_CHANNELS[currentHop]);
+        }
     }
 
-    // Throttled FEC health summary on the serial monitor (prints only when a
-    // counter changed, at most once every 5 s, to avoid blocking serial flush).
+    // Throttled FEC summary; suppressed in audio mode (a blocking serial flush
+    // would interrupt real-time playback). The AUDIO screen has its own opt-in
+    // debug line below.
     static uint32_t lastFecStatsMs = 0;
-    if (millis() - lastFecStatsMs >= 5000) {
+    if (appUI.mode != UIMode::Audio && millis() - lastFecStatsMs >= 5000) {
         lastFecStatsMs = millis();
         xcvr.logFecStats();
     }
-
 
     int8_t dir = inputDirectionY();
     bool btnDown = inputButtonPressed();
@@ -88,6 +92,8 @@ void loop() {
                     appUI.setMode(UIMode::Chat);
                 } else if (selection == MenuSyncTest) {
                     appUI.setMode(UIMode::SyncTest);
+                } else if (selection == MenuAudio) {
+                    appUI.setMode(UIMode::Audio);
                 } else if (selection == MenuAbout) {
                     appUI.setMode(UIMode::About);
                 } else {
@@ -146,6 +152,26 @@ void loop() {
                                     readCounter())) {
                 appUI.onSyncTestStateChanged();
             }
+            break;
+        case UIMode::Audio:
+            // Pumps capture/TX (talking) or RX/playback (listening) every loop.
+            if (audioUITickInput(dir, btnDown)) {
+                appUI.onAudioStateChanged();
+            }
+            // ── DEBUG: comment out this block for glitch-free audio ──────────
+            // (the serial flush stalls playback ~50 ms each time it prints).
+            {
+                static uint32_t lastAudioDbg = 0;
+                if (millis() - lastAudioDbg >= 2000) {
+                    lastAudioDbg = millis();
+                    Serial.printf("AUDIO %s tx=%lu rx=%lu | ",
+                                  audio::isTalking() ? "TALK" : "LISTEN",
+                                  (unsigned long)audio::txPayloads(),
+                                  (unsigned long)audio::rxPayloads());
+                    xcvr.logFecStats();
+                }
+            }
+            // ─────────────────────────────────────────────────────────────────
             break;
         case UIMode::About:
             // About has no active input right now besides back button

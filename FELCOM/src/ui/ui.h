@@ -13,6 +13,7 @@ enum UIMode : uint8_t {
     RFTest = 3,
     SyncTest = 4,
     About = 5,
+    Audio = 6,
 };
 
 enum UIUpdateType : uint8_t {
@@ -35,6 +36,7 @@ struct ui {
     void onPongStateChanged();
     void onRFTestStateChanged();
     void onSyncTestStateChanged();
+    void onAudioStateChanged();
 };
 
 #endif

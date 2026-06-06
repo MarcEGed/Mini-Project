@@ -85,13 +85,19 @@ const uint8_t HOPPING_CHANNELS[HOPPING_CHANNELS_SIZE] = {110, 111, 112,
 // L/R: wire to GND on module, no GPIO needed
 
 // DAC output (receiver side only)
-#define DAC_OUT_PIN 26  // ESP32 DAC2 — fixed by hardware
+#define DAC_OUT_PIN 25  // ESP32 DAC1 (GPIO25) — matches the audio amp wiring
 
 // Audio config
 #define AUDIO_SAMPLE_RATE 8000           // Hz
 #define AUDIO_PACKET_SAMPLES 24  // seq(2) + samples(24) = 26 user bytes (FEC_AUDIO_SAMPLES)
 // 0 = disabled, 1 = TX (mic), 2 = RX (speaker), 3 = both if ever needed
 #define AUDIO_ENABLED 1
+// Software mic gain: scaled = (centered * AUDIO_GAIN) >> 16.
+//   higher = louder but more clipping/hiss; lower = cleaner but quieter.
+//   Tune by ear: try 12 / 18 / 24 / 32.
+#define AUDIO_GAIN 18
+// Receive-side playback ring (power of two; smooths radio jitter before DAC).
+#define AUDIO_RX_RING 4096
 
 // FEC config — see "FEC Prototype — Design Document" (fec.md)
 #define FEC_XOR_BLOCK_SIZE 4    // data packets per XOR block (+1 parity packet)
