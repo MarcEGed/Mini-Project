@@ -22,7 +22,7 @@ static bool processTx(transceiver& xcvr, uint32_t now) {
     bool changed = false;
 
     // timeout outstanding echo → lost
-    if (awaitingEcho && now - pendingMs > RF_TEST_DELAY_MS + 400) {
+    if (awaitingEcho && now - pendingMs > RF_TEST_DELAY_MS + 1000) {
         stats.lost++;
         awaitingEcho = false;
         changed = true;
@@ -42,6 +42,8 @@ static bool processTx(transceiver& xcvr, uint32_t now) {
             awaitingEcho = true;
             stats.sent++;
             changed = true;
+
+            delayMicroseconds(500);
         }
         lastSendMs = now;
     }

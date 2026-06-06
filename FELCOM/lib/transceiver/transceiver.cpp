@@ -52,7 +52,13 @@ bool transceiver::writeRaw(PacketType type, const void* data, uint8_t len,
     while (retries-- > 0) {
         // CSMA: Briefly switch to RECEIVE mode to check channel activity
         radio->startListening();
-        delayMicroseconds(200);  // Allow RPD to lock onto a signal
+
+        //===========================================================
+        //=IM NOT SURE WHY, BUT THE FOLLOWING LINE DESTROYS BER MENU=
+        //===========without it everything works fine - marc=========
+        //===========================================================
+
+        //delayMicroseconds(200);  // Allow RPD to lock onto a signal
 
         if (!radio->testRPD()) {
             // Channel is clear, switch back to TRANSMIT and send
@@ -124,6 +130,11 @@ void transceiver::hop() {
     if (mode != TRANSMIT) {
         radio->startListening();
     }
+
+    //======================================================
+    //this has been replaced by the hopping mechanic in main
+    //======================================================
+    
     //channel_idx = (channel_idx + 1) % HOPPING_CHANNELS_SIZE;
 }
 

@@ -55,6 +55,7 @@ void loop() {
         lastHop = currentHop;
         xcvr.setChannel(HOPPING_CHANNELS[currentHop]);
         xcvr.setMode(RECEIVE);
+        LOG_INFO("Hopped to channel %d", HOPPING_CHANNELS[currentHop]);
     }
 
 
@@ -101,10 +102,10 @@ void loop() {
 
                 bool ok = xcvr.write(PacketType::CHAT, msg);
 
-                if (ok)
-                    LOG_INFO("Sent: \"%s\"", msg.text);
-                else
-                    LOG_ERROR("Send failed");
+                //if (ok)
+                //    LOG_INFO("Sent: \"%s\"", msg.text);
+                //else
+                //    LOG_ERROR("Send failed");
 
                 appUI.onChatMessageAdded();
             }
@@ -114,8 +115,8 @@ void loop() {
             if (xcvr.read(PacketType::CHAT, incoming)) {
                 decrypt(incoming.text, sizeof(incoming.text));
 
-                LOG_INFO("Packet from 0x%02X: %s", incoming.senderId,
-                         incoming.text);
+                //LOG_INFO("Packet from 0x%02X: %s", incoming.senderId,
+                //         incoming.text);
                 chat.log.push(incoming);
                 appUI.onChatMessageAdded();
             }
