@@ -5,6 +5,7 @@
 #include <input.h>
 #include <string.h>
 #include <ftimers.h>
+#include <selected_destination.h>
 #include <transceiver.h>
 
 #include "audio.h"
@@ -16,6 +17,7 @@
 #include "ui/MenuUI.h"
 #include "ui/PongUI.h"
 #include "ui/RFTestUI.h"
+#include "ui/SessionTargetUI.h"
 #include "ui/SyncTestUI.h"
 #include "ui/ui.h"
 
@@ -23,6 +25,10 @@ transceiver xcvr;
 ChatHandler chat;
 PongGame pong;
 ui appUI;
+
+uint8_t SELECTED_DST_NODE = BROADCAST_DST_NODE;
+static bool gTargetUIActive = false;
+static UIMode gPendingMode = UIMode::Chat;
 
 void setup() {
     loggerSetup();
@@ -82,7 +88,28 @@ void loop() {
     bool btnDown = inputButtonPressed();
     bool backDown = inputBackPressed();
 
+    if (gTargetUIActive) {
+        if (backDown) {
+            gTargetUIActive = false;
+            appUI.setMode(UIMode::Menu);
+            return;
+        }
+
+        bool confirmed = false;
+        if (sessionTargetUITickInput(xcvr, dir, btnDown, SELECTED_DST_NODE,
+                                     &SELECTED_DST_NODE, &confirmed)) {
+            sessionTargetUIUpdate(xcvr);
+        }
+
+        if (confirmed) {
+            gTargetUIActive = false;
+            appUI.setMode(gPendingMode);
+        }
+        return;
+    }
+
     if (backDown && appUI.mode != UIMode::Menu) {
+        gTargetUIActive = false;
         appUI.setMode(UIMode::Menu);
     }
 
@@ -94,16 +121,25 @@ void loop() {
             if (btnDown) {
                 MenuModeSelection selection = menuUIGetSelection();
                 if (selection == MenuPong) {
-                    appUI.setMode(UIMode::Pong);
+                    gPendingMode = UIMode::Pong;
+                    gTargetUIActive = true;
+                    sessionTargetUIInitDisplay(xcvr, SELECTED_DST_NODE);
                 } else if (selection == MenuChat) {
-                    appUI.setMode(UIMode::Chat);
+                    gPendingMode = UIMode::Chat;
+                    gTargetUIActive = true;
+                    sessionTargetUIInitDisplay(xcvr, SELECTED_DST_NODE);
                 } else if (selection == MenuSyncTest) {
+                    gTargetUIActive = false;
                     appUI.setMode(UIMode::SyncTest);
                 } else if (selection == MenuAudio) {
-                    appUI.setMode(UIMode::Audio);
+                    gPendingMode = UIMode::Audio;
+                    gTargetUIActive = true;
+                    sessionTargetUIInitDisplay(xcvr, SELECTED_DST_NODE);
                 } else if (selection == MenuAbout) {
+                    gTargetUIActive = false;
                     appUI.setMode(UIMode::About);
                 } else {
+                    gTargetUIActive = false;
                     appUI.setMode(UIMode::RFTest);
                 }
             }
@@ -121,13 +157,13 @@ void loop() {
 
                 encrypt(msg.text, sizeof(msg.text));
 
-                // CHAT is reliable: CRC + ARQ (retransmit until ACKed).
-                bool ok = xcvr.writeReliable(PacketType::CHAT, msg);
+                bool ok = selectedDestinationIsBroadcast()
+                              ? xcvr.write(PacketType::CHAT, msg,
+                                           SELECTED_DST_NODE)
+                              : xcvr.writeReliable(PacketType::CHAT, msg,
+                                                   SELECTED_DST_NODE);
 
-                //if (ok)
-                //    LOG_INFO("Sent: \"%s\"", msg.text);
-                //else
-                //    LOG_ERROR("Send failed");
+                (void)ok;
 
                 appUI.onChatMessageAdded();
             }

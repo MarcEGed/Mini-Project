@@ -19,6 +19,10 @@ struct transceiver {
     // interaction (CRC, ARQ, XOR audio) happens through transceiver methods.
     FecState fec;
 
+    // Because of the ndsync we can only keep track of 10 synced nodes, but that's enough for our use case.
+    uint8_t syncedNodes[10];
+    uint8_t nbSyncedNodes = 0;
+
     void setup();
     void setMode(transceiverMode newMode);
 
@@ -117,10 +121,11 @@ struct transceiver {
 
     // --- Audio (XOR block FEC) -------------------------------------------
     /** @brief Buffer + transmit one audio frame, emitting parity per block. */
-    void audioTx(const void* payload, uint8_t len);
+    void audioTx(const void* payload, uint8_t len,
+                 uint8_t dst_node_id = 0xFF);
     template <typename T>
-    void audioTx(const T& payload) {
-        audioTx(&payload, sizeof(T));
+    void audioTx(const T& payload, uint8_t dst_node_id = 0xFF) {
+        audioTx(&payload, sizeof(T), dst_node_id);
     }
     /** @brief Pop a recovered/received audio frame. false if none ready. */
     bool audioRx(void* payload, uint8_t len);

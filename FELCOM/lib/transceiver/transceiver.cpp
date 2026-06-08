@@ -290,12 +290,13 @@ void transceiver::poll() {
 
 // ── Audio (XOR block FEC) ───────────────────────────────────────────────────
 
-void transceiver::audioTx(const void* payload, uint8_t len) {
+void transceiver::audioTx(const void* payload, uint8_t len,
+                          uint8_t dst_node_id) {
     uint8_t idx = fec.xor_tx_count;
 
     FHSSPacket pkt = {0};
     pkt.src_node_id = NODE_ID;
-    pkt.dst_node_id = 0xFF;  // audio is broadcast
+    pkt.dst_node_id = dst_node_id;
     fecEncodeProtected(pkt, PacketType::AUDIO, FecScheme::XOR,
                        fec.xor_tx_block_id, idx, payload, len);
     transmitPacket(pkt);
@@ -309,7 +310,7 @@ void transceiver::audioTx(const void* payload, uint8_t len) {
     if (fec.xor_tx_count >= FEC_XOR_BLOCK_SIZE) {
         FHSSPacket parity = {0};
         parity.src_node_id = NODE_ID;
-        parity.dst_node_id = 0xFF;
+        parity.dst_node_id = dst_node_id;
         fecEncodeProtected(parity, PacketType::AUDIO, FecScheme::XOR,
                            fec.xor_tx_block_id, FEC_INDEX_PARITY,
                            fec.xor_tx_parity, FEC_USER_SIZE);
@@ -332,6 +333,9 @@ bool transceiver::audioRx(void* payload, uint8_t len) {
 void transceiver::sendSync(uint32_t value) {
     NDSyncData payload = {0};
     payload.timer_val = (int64_t)value;
+    payload.nbSyncedNodes = nbSyncedNodes;
+    // copy current synced nodes into the payload
+    memcpy(payload.syncedNodes, syncedNodes, nbSyncedNodes);
     // ND_SYNC is sent RAW (no CRC, no ARQ), byte-for-byte as the pre-FEC
     // transceiver did. It is a best-effort timing broadcast: ARQ would block
     // hopping for ~800 ms, and CRC-dropping a slightly corrupted sync packet

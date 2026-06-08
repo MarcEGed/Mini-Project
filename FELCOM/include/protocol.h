@@ -66,6 +66,9 @@ enum class FecScheme : uint8_t {
 
 struct __attribute__((packed)) NDSyncData {
     int64_t timer_val;
+    uint8_t nbSyncedNodes;
+    // we can only fit 10 synced nodes
+    uint8_t syncedNodes[10];
 };
 
 // ACK control packet (CRC-protected, never itself ACKed).

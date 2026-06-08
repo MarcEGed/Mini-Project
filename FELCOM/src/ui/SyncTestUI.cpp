@@ -12,6 +12,41 @@
 static uint32_t gNowMs = 0;
 static uint32_t gSyncFlashUntil = 0;
 
+static void addSyncedNodeIfMissing(transceiver& xcvr, uint8_t nodeId) {
+    if (nodeId == NODE_ID || nodeId == 0xFF) {
+        return;
+    }
+
+    for (uint8_t i = 0; i < xcvr.nbSyncedNodes; ++i) {
+        if (xcvr.syncedNodes[i] == nodeId) {
+            return;
+        }
+    }
+
+    const uint8_t maxSyncedNodes = sizeof(xcvr.syncedNodes);
+    if (xcvr.nbSyncedNodes >= maxSyncedNodes) {
+        return;
+    }
+
+    xcvr.syncedNodes[xcvr.nbSyncedNodes++] = nodeId;
+}
+
+static void mergeIncomingSyncedNodes(transceiver& xcvr,
+                                     uint8_t srcNodeId,
+                                     const NDSyncData& incoming) {
+    addSyncedNodeIfMissing(xcvr, srcNodeId);
+
+    const uint8_t maxIncomingNodes = sizeof(incoming.syncedNodes);
+    uint8_t incomingCount = incoming.nbSyncedNodes;
+    if (incomingCount > maxIncomingNodes) {
+        incomingCount = maxIncomingNodes;
+    }
+
+    for (uint8_t i = 0; i < incomingCount; ++i) {
+        addSyncedNodeIfMissing(xcvr, incoming.syncedNodes[i]);
+    }
+}
+
 // The counter is used to get the channel we should hope to
 // counter % HOPPING_CHANNELS_SIZE is the index of the channel in
 // HOPPING_CHANNELS we should be on. when we send a sync packet, we should
@@ -69,8 +104,10 @@ bool syncTestUITickInput(transceiver& xcvr, int8_t dirY, bool btnDown,
     }
 
     NDSyncData incoming = {0};
-    if (xcvr.read(PacketType::ND_SYNC, incoming)) {
-        setCounter(static_cast<uint32_t>(incoming.timer_val)); 
+    uint8_t srcNodeId = 0;
+    if (xcvr.read(PacketType::ND_SYNC, incoming, &srcNodeId)) {
+        setCounter(static_cast<uint32_t>(incoming.timer_val));
+        mergeIncomingSyncedNodes(xcvr, srcNodeId, incoming);
         gSyncFlashUntil = now + 200;
     }
 

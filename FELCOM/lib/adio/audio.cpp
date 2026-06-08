@@ -5,6 +5,7 @@
 
 #include <config.h>
 #include <protocol.h>
+#include <selected_destination.h>
 #include <transceiver.h>
 
 // All state is file-local. Everything runs in the main-loop (cooperative)
@@ -84,7 +85,9 @@ void capture() {
         txAccum.samples[txIdx++] = (uint8_t)v;
         if (txIdx >= AUDIO_PACKET_SAMPLES) {
             txAccum.seq = txSeq++;
-            g_xcvr->audioTx(txAccum);  // CRC + XOR block (+ parity per block)
+            g_xcvr->audioTx(
+                txAccum,
+                SELECTED_DST_NODE);  // CRC + XOR block (+ parity per block)
             txIdx = 0;
             g_txPayloads++;
         }

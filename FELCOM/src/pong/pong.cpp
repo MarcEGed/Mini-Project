@@ -2,6 +2,7 @@
 
 #include <config.h>
 #include <debug.h>
+#include <selected_destination.h>
 #include <transceiver.h>
 
 #include "PongMessage.h"
@@ -86,7 +87,7 @@ static void sendState(const PongGame* game) {
         pkt.paddleY = static_cast<int16_t>(game->paddleRight);
     }
 
-    xcvr.write(PacketType::PONG, pkt, 0xFF);
+    xcvr.write(PacketType::PONG, pkt, SELECTED_DST_NODE);
 }
 
 static void receivePackets(PongGame* game) {
