@@ -158,4 +158,54 @@ void update() {
 uint32_t txPayloads() { return g_txPayloads; }
 uint32_t rxPayloads() { return g_rxPayloads; }
 
+// Pure mic monitor for bring-up — no radio, no sync, no FEC. Reads the mic in
+// stereo and tracks each slot's signal span separately: whichever slot swings
+// when you talk is the live one (slot 0 on our boards). It also plays slot 0 to
+// the DAC so you can hear the mic. Diagnosing a friend's mic:
+//   - SLOT0 span jumps when you talk, SLOT1 ~0  -> mic OK (expected).
+//   - BOTH stay ~0                              -> no data: check SD wire, 3V3,
+//                                                  and that L/R is tied to GND.
+//   - only SLOT1 swings                         -> mic is on the other slot.
+void micProbe() {
+    initMic();
+    Serial.println();
+    Serial.println(F("=== MIC PROBE (talk into the mic) ==="));
+    Serial.println(F("SLOT0 span should jump when you talk; SLOT1 stays ~0."));
+    Serial.println(F("If BOTH stay near 0 -> no mic data (SD wire / 3V3 / L-R)."));
+
+    int32_t buf[64];
+    const uint32_t periodUs = 1000000UL / AUDIO_SAMPLE_RATE;
+    int32_t s0Min = 0x7FFFFFFF, s0Max = -0x7FFFFFFF;
+    int32_t s1Min = 0x7FFFFFFF, s1Max = -0x7FFFFFFF;
+    uint32_t pairCount = 0;
+
+    while (true) {
+        size_t bytesRead = 0;
+        i2s_read(I2S_PORT, buf, sizeof(buf), &bytesRead, portMAX_DELAY);
+        uint32_t count = bytesRead / sizeof(int32_t);
+        for (uint32_t i = 0; i < count; i++) {
+            int32_t sample24 = buf[i] >> 8;
+            if (i & 1) {  // slot 1 = odd samples
+                if (sample24 < s1Min) s1Min = sample24;
+                if (sample24 > s1Max) s1Max = sample24;
+            } else {  // slot 0 = even samples (the live mic channel)
+                if (sample24 < s0Min) s0Min = sample24;
+                if (sample24 > s0Max) s0Max = sample24;
+                int32_t v = 128 + (sample24 >> 16);  // monitor slot0 on speaker
+                if (v < 0) v = 0;
+                if (v > 255) v = 255;
+                dacWrite(DAC_OUT_PIN, (uint8_t)v);
+                delayMicroseconds(periodUs);  // 8 kHz pacing
+                if (++pairCount >= 4000) {     // ~0.5 s @ 8 kHz
+                    Serial.printf("SLOT0 span=%ld | SLOT1 span=%ld\n",
+                                  (long)(s0Max - s0Min), (long)(s1Max - s1Min));
+                    s0Min = s1Min = 0x7FFFFFFF;
+                    s0Max = s1Max = -0x7FFFFFFF;
+                    pairCount = 0;
+                }
+            }
+        }
+    }
+}
+
 }  // namespace audio

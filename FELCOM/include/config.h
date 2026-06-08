@@ -92,6 +92,11 @@ const uint8_t HOPPING_CHANNELS[HOPPING_CHANNELS_SIZE] = {110, 111, 112,
 #define AUDIO_PACKET_SAMPLES 24  // seq(2) + samples(24) = 26 user bytes (FEC_AUDIO_SAMPLES)
 // 0 = disabled, 1 = TX (mic), 2 = RX (speaker), 3 = both if ever needed
 #define AUDIO_ENABLED 1
+// Mic bring-up diagnostic. Set to 1, flash, and the board skips the normal app
+// and becomes a pure mic monitor: it prints the per-slot signal span to serial
+// (DEBUG_BAUD) ~2x/sec and plays slot 0 to the speaker — no radio/sync needed.
+// Use it to check a microphone in isolation, then set back to 0 for normal use.
+#define MIC_TEST_MODE 0
 // Software mic gain: scaled = (centered * AUDIO_GAIN) >> 16.
 //   higher = louder but more clipping/hiss; lower = cleaner but quieter.
 //   Tune by ear: try 12 / 18 / 24 / 32.

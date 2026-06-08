@@ -134,6 +134,37 @@ the public API.
 
 ---
 
+## Testing a microphone in isolation (`MIC_TEST_MODE`)
+
+If a mic isn't working, test it **on its own** before worrying about radio, sync
+or FEC. Set `MIC_TEST_MODE` to `1` in `include/config.h`, flash, and the board
+skips the whole app and becomes a pure mic monitor:
+
+```c
+// include/config.h
+#define MIC_TEST_MODE 1   // set back to 0 for normal operation
+```
+
+Open the serial monitor at **9600 baud** (`DEBUG_BAUD`) and talk into the mic.
+Twice a second you get a line like:
+
+```
+SLOT0 span=41233 | SLOT1 span=0
+```
+
+You also hear the mic on the speaker (slot 0, no gain). Read it like this:
+
+| What you see | Meaning |
+| --- | --- |
+| `SLOT0 span` jumps when you talk, `SLOT1` ~0 | **Mic works** — this is the expected, correct case. |
+| **Both** spans stay near 0 | No data from the mic: check the **SD** wire, **3.3 V**/GND, and that **L/R is tied to GND**. |
+| Only `SLOT1` swings | Mic is on the other slot — unusual on these boards; tell us if you see it. |
+
+("span" = max − min of the raw 24-bit sample over ~0.5 s, i.e. how much the
+signal is moving.) When the mic checks out, set `MIC_TEST_MODE` back to `0`.
+
+---
+
 ## Tuning & debugging
 
 - **Mic volume:** `AUDIO_GAIN` in `include/config.h` (currently `18`).
