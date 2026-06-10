@@ -34,13 +34,6 @@ void setup() {
     loggerSetup();
     // LOG_INFO("Booting node (id=0x%02X)", NODE_ID);
 
-#if defined(MIC_TEST_MODE) && MIC_TEST_MODE
-    // Mic bring-up diagnostic: skip the normal app entirely and run a pure mic
-    // monitor (serial span + slot-0 to the speaker). Set MIC_TEST_MODE 0 in
-    // config.h for normal operation. Never returns.
-    audio::micProbe();
-#endif
-
     setupDisplay();
     // LOG_INFO("Display ready");
 

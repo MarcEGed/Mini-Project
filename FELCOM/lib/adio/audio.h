@@ -41,13 +41,6 @@ void update();
 uint32_t txPayloads();
 uint32_t rxPayloads();
 
-// Mic bring-up diagnostic (enabled via MIC_TEST_MODE in config.h). Blocks
-// forever: reads the I2S mic, prints each slot's signal span to serial (~2x/sec)
-// and plays slot 0 to the DAC so you can both see and hear whether the mic
-// works. No radio, sync or FEC involved — use it to isolate microphone issues.
-// Never returns.
-void micProbe();
-
 }  // namespace audio
 
 #endif  // AUDIO_H
