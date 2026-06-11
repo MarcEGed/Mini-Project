@@ -17,8 +17,9 @@ struct transceiver;
 // FHSS channel hopping in the main loop still happens on time.
 //
 // Half-duplex: a node is either TALKING (mic -> radio) or LISTENING
-// (radio -> speaker), toggled from the AUDIO screen. Mic capture is stereo and
-// uses slot 0 — ONLY_LEFT returns silence on this board (ESP32 I2S quirk).
+// (radio -> speaker), toggled from the AUDIO screen. Mic capture is stereo;
+// AUDIO_I2S_SLOT_INDEX selects which slot to use because ONLY_LEFT returns
+// silence on this board (ESP32 I2S quirk).
 // ===========================================================================
 namespace audio {
 
@@ -38,8 +39,23 @@ bool isTalking();
 void update();
 
 // Diagnostics for the opt-in serial debug line.
+struct Stats {
+    uint32_t txPayloads;
+    uint32_t rxPayloads;
+    uint32_t i2sReads;
+    uint32_t i2sEmptyReads;
+    uint32_t micSamples;
+    uint32_t micClippedLow;
+    uint32_t micClippedHigh;
+    uint32_t rxUnderruns;
+    uint32_t rxOverruns;
+    uint16_t rxLevel;
+    int32_t micPeak;
+};
+
 uint32_t txPayloads();
 uint32_t rxPayloads();
+Stats stats();
 
 }  // namespace audio
 

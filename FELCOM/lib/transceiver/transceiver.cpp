@@ -70,6 +70,21 @@ bool transceiver::transmitPacket(FHSSPacket& pkt) {
     return ok;
 }
 
+bool transceiver::transmitAudioPacket(FHSSPacket& pkt) {
+    transceiverMode oldMode = mode;
+    if (mode != TRANSMIT) {
+        setMode(TRANSMIT);
+    }
+
+    // AUDIO is high-rate, real-time, and already protected by CRC + XOR FEC.
+    // Do not do CSMA/random backoff here: those millisecond delays starve the
+    // cooperative audio loop and make local/remote playback choppy.
+    bool ok = radio->write(&pkt, sizeof(FHSSPacket));
+
+    if (oldMode != TRANSMIT) setMode(oldMode);
+    return ok;
+}
+
 bool transceiver::receiveRaw(FHSSPacket& pkt, uint8_t* out_src_node_id) {
     transceiverMode oldMode = mode;
     if (mode != RECEIVE) {
@@ -299,7 +314,7 @@ void transceiver::audioTx(const void* payload, uint8_t len,
     pkt.dst_node_id = dst_node_id;
     fecEncodeProtected(pkt, PacketType::AUDIO, FecScheme::XOR,
                        fec.xor_tx_block_id, idx, payload, len);
-    transmitPacket(pkt);
+    transmitAudioPacket(pkt);
 
     // Accumulate parity over the protected user region of each data slot.
     for (uint8_t b = 0; b < FEC_USER_SIZE; b++) {
@@ -314,7 +329,7 @@ void transceiver::audioTx(const void* payload, uint8_t len,
         fecEncodeProtected(parity, PacketType::AUDIO, FecScheme::XOR,
                            fec.xor_tx_block_id, FEC_INDEX_PARITY,
                            fec.xor_tx_parity, FEC_USER_SIZE);
-        transmitPacket(parity);
+        transmitAudioPacket(parity);
 
         memset(fec.xor_tx_parity, 0, FEC_USER_SIZE);
         fec.xor_tx_count = 0;

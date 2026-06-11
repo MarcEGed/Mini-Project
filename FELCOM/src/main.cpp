@@ -194,20 +194,33 @@ void loop() {
             if (audioUITickInput(dir, btnDown)) {
                 appUI.onAudioStateChanged();
             }
-            // ── DEBUG: comment out this block for glitch-free audio ──────────
-            // (the serial flush stalls playback ~50 ms each time it prints).
+#if AUDIO_SERIAL_DEBUG
+            // Serial printing stalls the cooperative audio loop, so keep this
+            // compile-time disabled except while diagnosing the audio path.
             {
                 static uint32_t lastAudioDbg = 0;
                 if (millis() - lastAudioDbg >= 2000) {
                     lastAudioDbg = millis();
-                    Serial.printf("AUDIO %s tx=%lu rx=%lu | ",
-                                  audio::isTalking() ? "TALK" : "LISTEN",
-                                  (unsigned long)audio::txPayloads(),
-                                  (unsigned long)audio::rxPayloads());
+                    audio::Stats s = audio::stats();
+                    Serial.printf(
+                        "\nAUDIO %s tx=%lu rx=%lu i2s=%lu/%lu mic=%lu "
+                        "peak=%ld clip=%lu/%lu ring=%u under=%lu over=%lu | ",
+                        audio::isTalking() ? "TALK" : "LISTEN",
+                        (unsigned long)s.txPayloads,
+                        (unsigned long)s.rxPayloads,
+                        (unsigned long)(s.i2sReads - s.i2sEmptyReads),
+                        (unsigned long)s.i2sReads,
+                        (unsigned long)s.micSamples,
+                        (long)s.micPeak,
+                        (unsigned long)s.micClippedLow,
+                        (unsigned long)s.micClippedHigh,
+                        s.rxLevel,
+                        (unsigned long)s.rxUnderruns,
+                        (unsigned long)s.rxOverruns);
                     xcvr.logFecStats();
                 }
             }
-            // ─────────────────────────────────────────────────────────────────
+#endif
             break;
         case UIMode::About:
             // About has no active input right now besides back button

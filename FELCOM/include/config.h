@@ -88,15 +88,33 @@ const uint8_t HOPPING_CHANNELS[HOPPING_CHANNELS_SIZE] = {110, 111, 112,
 #define DAC_OUT_PIN 25  // ESP32 DAC1 (GPIO25) — matches the audio amp wiring
 
 // Audio config
-#define AUDIO_SAMPLE_RATE 8000           // Hz
+#define AUDIO_SAMPLE_RATE 8000   // Hz
 #define AUDIO_PACKET_SAMPLES 24  // seq(2) + samples(24) = 26 user bytes (FEC_AUDIO_SAMPLES)
 // 0 = disabled, 1 = TX (mic), 2 = RX (speaker), 3 = both if ever needed
 #define AUDIO_ENABLED 1
+// INMP441 L/R tied to GND selects the left I2S slot. With ESP32 legacy I2S in
+// RIGHT_LEFT mode, boards/libraries can disagree on whether that arrives as
+// buffer index 0 or 1. If mic diagnostics show near-zero level, try changing
+// this between 0 and 1 before changing gain.
+#define AUDIO_I2S_SLOT_INDEX 0
 // Software mic gain: scaled = (centered * AUDIO_GAIN) >> 16.
 //   higher = louder but more clipping/hiss; lower = cleaner but quieter.
 //   Tune by ear: try 12 / 18 / 24 / 32.
-#define AUDIO_GAIN 18
-// Receive-side playback ring (power of two; smooths radio jitter before DAC).
+#define AUDIO_GAIN 8
+// Set to 1 to hear locally the same 8-bit mic samples being transmitted while
+// TALKING. Useful for checking mic/I2S/gain before debugging the radio link.
+#define AUDIO_LOCAL_MONITOR 0
+// Max local monitor backlog while TALKING. Lower = less sidetone delay; if too
+// low it can sound rough because old samples are dropped to stay live.
+#define AUDIO_LOCAL_MONITOR_MAX_QUEUED 24
+// Set to 0 to test only the mic -> local DAC path without nRF24/FEC blocking.
+// Leave 1 for normal walkie-talkie TX.
+#define AUDIO_RADIO_TX_ENABLE 1
+// Set to 1 for serial audio diagnostics. Keep 0 for normal playback: serial
+// printing stalls the cooperative audio loop and causes audible glitches.
+#define AUDIO_SERIAL_DEBUG 0
+// DAC playback ring (power of two; smooths radio jitter in LISTEN and paces the
+// local mic monitor in TALK).
 #define AUDIO_RX_RING 4096
 
 // FEC config — see "FEC Prototype — Design Document" (fec.md)

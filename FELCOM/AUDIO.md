@@ -63,8 +63,8 @@ These pins live in `include/config.h` (`I2S_*_PIN`, `DAC_OUT_PIN`).
 ### The two gotchas that cost us the most time
 1. **`I2S_CHANNEL_FMT_ONLY_LEFT` returns silence on our DevKit boards.** This is
    a known ESP32 *legacy* I2S quirk. We capture in **stereo
-   (`RIGHT_LEFT`) and use slot 0** (every even 32-bit sample). If the mic reads
-   all zeros, this is almost always why.
+   (`RIGHT_LEFT`) and use `AUDIO_I2S_SLOT_INDEX`** to select the DMA slot. If the
+   mic reads all zeros, this is almost always why.
 2. **DAC is on GPIO25, not 26.** The amp is wired to DAC1 (GPIO25).
 
 ### Other things to know
@@ -117,7 +117,7 @@ directly, it just uses `xcvr.write` / `writeReliable` / `read` / `audioTx` /
 | CHAT        | ✓ | ✓ | ✗ | infrequent, must be exact |
 | ND_SYNC     | ✗ (raw) | ✗ | ✗ | timing broadcast; must stay forgiving |
 | PONG        | ✓ | ✗ | ✗ | frequent; ARQ would backlog |
-| AUDIO       | ✓ | ✗ | ✓ | real-time; forward recovery only |
+| AUDIO       | ✓ | ✗ | ✓ | real-time; forward recovery only; bypasses CSMA backoff |
 | TEST (BER)  | ✗ (raw) | ✗ | ✗ | measures real bit errors |
 | ACK         | ✓ | ✗ | ✗ | small control packet |
 
@@ -136,15 +136,40 @@ the public API.
 
 ## Tuning & debugging
 
+- **Mic slot:** `AUDIO_I2S_SLOT_INDEX` in `include/config.h` selects which
+  stereo DMA slot is treated as the INMP441 sample. With L/R tied to GND the
+  mic should be on the left slot, but ESP32 legacy I2S can expose that as
+  buffer index `0` or `1` depending on board/framework behavior. If diagnostics
+  show `mic` increasing but `peak` near zero, try the other slot before changing
+  gain.
 - **Mic volume:** `AUDIO_GAIN` in `include/config.h` (currently `18`).
   Higher = louder but more clipping/hiss; lower = cleaner but quieter.
   This is a *capture-side* setting, so only the **talking** board needs
-  reflashing when you change it.
-- **Serial debug:** the `UIMode::Audio` case in `src/main.cpp` has an opt-in
-  block that prints, every 2 s: role, TX/RX payload counts, and the FEC
-  counters (`CRC ok/bad`, `AUDIO blk/rec/lost`). It's **commented out by
-  default** because the serial `flush()` blocks ~50 ms at 9600 baud and causes
-  an audible skip. Uncomment it when you need to see what the link is doing.
+  reflashing when you change it. If `clip` rises quickly while talking, reduce
+  `AUDIO_GAIN`.
+- **Local mic monitor:** `AUDIO_LOCAL_MONITOR` in `include/config.h` plays the
+  same 8-bit samples being transmitted out the local DAC while TALKING. This is
+  useful for separating mic/I2S/gain problems from radio/FEC problems. If local
+  monitor is still choppy, temporarily set `AUDIO_RADIO_TX_ENABLE` to `0`; that
+  tests only mic → DSP → DAC without nRF24/FEC transmit stalls. If sidetone has
+  too much delay, lower `AUDIO_LOCAL_MONITOR_MAX_QUEUED`; if it sounds too
+  rough, raise it a bit.
+- **Serial debug:** set `AUDIO_SERIAL_DEBUG` to `1` in `include/config.h` to
+  print every 2 s: role, TX/RX payload counts, I2S read activity, mic sample
+  count/peak/clips, RX ring level, underruns/overruns, and FEC counters
+  (`CRC ok/bad`, `AUDIO blk/rec/lost`). Keep it `0` for normal playback because
+  serial printing stalls the cooperative audio loop and causes audible skips.
+  - `i2s` first/second number = non-empty reads / total reads. If total rises
+    but non-empty stays low, the loop is polling faster than DMA fills; this is
+    usually OK. If both stay at 0 while TALKING, capture is not running.
+  - `mic` should rise while TALKING; `peak` should move when you speak. Near-zero
+    `peak` usually means the wrong I2S slot or mic wiring/power.
+  - `clip` rising quickly means the 8-bit conversion is saturating; lower
+    `AUDIO_GAIN`.
+  - `under` rising on LISTEN means playback is starved: radio/FEC is not
+    delivering enough samples, sync is bad, or debug/logging is stalling audio.
+  - `over` rising means the RX jitter ring is filling faster than playback can
+    drain it.
   - `CRC bad` = corrupt packets dropped, `rec` = packets XOR rebuilt,
     `lost` = losses XOR couldn't fix (these become gaps).
 
@@ -172,4 +197,6 @@ the public API.
   pin AUDIO mode to a fixed channel, or add a short RX pre-buffer.
 - **Sync drift** desyncs the nodes over time — re-SYNC as needed.
 - **Half-duplex only**; no push-to-talk hardware button yet (toggle via SELECT).
-- **CSMA per packet** adds overhead at the audio packet rate; not yet optimised.
+- **Audio TX bypasses CSMA backoff** to avoid millisecond stalls at the audio
+  packet rate. If both nodes transmit audio at once, collisions are expected;
+  keep AUDIO half-duplex.

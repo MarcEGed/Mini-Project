@@ -137,6 +137,8 @@ struct transceiver {
     // --- Low-level radio helpers (used by the FEC paths above) -----------
     /** @brief CSMA + raw radio write of a fully-built frame. (Rule 3) */
     bool transmitPacket(FHSSPacket& pkt);
+    /** @brief Low-latency best-effort write for real-time audio packets. */
+    bool transmitAudioPacket(FHSSPacket& pkt);
     /** @brief Read one frame addressed to us (filters dst_node_id). (Rule 3) */
     bool receiveRaw(FHSSPacket& pkt, uint8_t* out_src_node_id = nullptr);
 
