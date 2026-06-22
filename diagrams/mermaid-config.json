@@ -1,0 +1,7 @@
+{
+  "theme": "neutral",
+  "flowchart": { "htmlLabels": false, "useMaxWidth": false, "curve": "basis" },
+  "sequence": { "useMaxWidth": false, "mirrorActors": false },
+  "state": { "useMaxWidth": false },
+  "packet": { "useMaxWidth": false }
+}

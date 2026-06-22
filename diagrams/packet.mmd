@@ -1,0 +1,8 @@
+packet-beta
+title FELCOM 32-byte on-air frame
+0-7: "src_node_id (1 B)"
+8-15: "dst_node_id (1 B)"
+16-19: "type (4b)"
+20-31: "fec (12b): scheme | block | index"
+32-239: "user payload (26 B); ARQ uses first 2 B as seq"
+240-255: "CRC-16 (2 B)"

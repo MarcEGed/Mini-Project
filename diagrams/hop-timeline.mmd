@@ -1,0 +1,13 @@
+flowchart TB
+    subgraph CYCLE["Shared hop sequence (counter mod 6, one slot = 500 ms)"]
+        direction LR
+        H0["ch 110"] --> H1["ch 111"] --> H2["ch 112"] --> H3["ch 113"] --> H4["ch 114"] --> H5["ch 115"]
+        H5 -->|"+500 ms, wrap (full sweep = 3 s)"| H0
+    end
+    DRIFT["Clock drift: Node B's counter slips,<br/>nodes land on different channels, link is lost"]
+    SYNC["ND_SYNC carries the sender's counter;<br/>Node B adopts it and the two counters realign"]
+
+    CYCLE --> DRIFT --> SYNC --> CYCLE
+
+    style DRIFT fill:#fee,stroke:#a66
+    style SYNC fill:#efe,stroke:#6a6

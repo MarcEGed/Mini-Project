@@ -1,0 +1,7 @@
+stateDiagram-v2
+    [*] --> Searching
+    Searching --> Synced: heard ND_SYNC, adopt counter
+    Searching --> Synced: join timeout, form new network (counter = 0)
+    Synced --> Synced: hop every 500 ms
+    Synced --> OutOfSync: long silence or drift detected
+    OutOfSync --> Searching: broadcast ND_SYNC, then listen

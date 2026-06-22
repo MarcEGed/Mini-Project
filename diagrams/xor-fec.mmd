@@ -1,0 +1,21 @@
+flowchart LR
+    subgraph BLK["One XOR block: 4 data packets + 1 parity"]
+        direction LR
+        D0["D0"]
+        D1["D1"]
+        D2["D2 (LOST)"]
+        D3["D3"]
+        P["P = D0 XOR D1 XOR D2 XOR D3"]
+    end
+    REC["Receiver rebuilds the lost packet:<br/>D2 = D0 XOR D1 XOR D3 XOR P"]
+    OUT["All four data packets available"]
+
+    D0 --> REC
+    D1 --> REC
+    D3 --> REC
+    P --> REC
+    REC --> OUT
+
+    style D2 fill:#fee,stroke:#a66,stroke-dasharray:4 3
+    style P fill:#eef,stroke:#88a
+    style OUT fill:#efe,stroke:#6a6

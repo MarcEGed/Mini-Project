@@ -1,0 +1,11 @@
+sequenceDiagram
+    participant A as Sender
+    participant B as Receiver
+    Note over A,B: Normal delivery
+    A->>B: CHAT (seq = n)
+    B-->>A: ACK (seq = n)
+    Note over A,B: Loss and retransmission
+    A-xB: CHAT (seq = n+1) lost
+    Note right of A: timeout 200 ms, no ACK
+    A->>B: CHAT (seq = n+1) retransmit
+    B-->>A: ACK (seq = n+1)

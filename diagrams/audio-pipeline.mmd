@@ -1,0 +1,20 @@
+flowchart LR
+    subgraph TALK["Talking node (capture and transmit)"]
+        direction TB
+        MIC["INMP441 mic"] --> I2S["I2S read (non-blocking)"]
+        I2S --> DSP["DC removal, gain, 8-bit clamp"]
+        DSP --> PACK["pack 24 samples = 3 ms"]
+        PACK --> TX["audioTx: CRC + XOR FEC"]
+    end
+    RADIO(["nRF24 FHSS link"])
+    subgraph LISTEN["Listening node (receive and play)"]
+        direction TB
+        RX["audioRx: CRC check + XOR recover"] --> RING["jitter ring buffer (4096)"]
+        RING --> DAC["8 kHz paced to DAC (GPIO25)"]
+        DAC --> AMP["LM386 amplifier"]
+        AMP --> SPK["speaker"]
+    end
+
+    TX --> RADIO --> RX
+
+    style RADIO fill:#eef,stroke:#88a
