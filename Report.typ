@@ -1,4 +1,6 @@
-#import "@preview/starry-ulfg:0.2.0": starry-ulfg
+// Local (vendored) copy of the starry-ulfg template, modified so chapters flow
+// instead of each starting on a new page. See template/starry-ulfg.typ.
+#import "template/starry-ulfg.typ": starry-ulfg
 
 #show: starry-ulfg.with(
   document-title: "FELCOM: A Secure Handheld Communication Device",
@@ -7,13 +9,38 @@
   course: "Mini-Project",
   year: [2025/2026],
   professors: ("Dr. Hadi Jerdek",),
-  // acknowledgment: [#lorem(180)],
-  show-table-of-contents: false,
+  // Front matter is produced by the template: cover, then Table of Contents (i),
+  // Table of Figures (ii) and this Abstract (iii) in roman numerals, then the
+  // body restarts at arabic page 1.
+  show-table-of-contents: true,
+  show-list-of-figure: true,
+  show-list-of-tables: false,
+  abstract: [
+    FELCOM is a pair of handheld radios that provide secure, infrastructure-free
+    text and voice communication in the 2.4#sym.space.nobreak GHz ISM band. Each
+    unit is built around an ESP32 microcontroller driving an nRF24L01+
+    transceiver, an INMP441 I#super[2]S microphone, a DAC, amplifier and speaker
+    audio chain, an OLED display and tactile controls, all integrated on a custom
+    PCB. To resist narrowband jamming and lower the probability of interception,
+    the link continuously hops across six interference-free channels using
+    software-controlled Frequency-Hopping Spread Spectrum (FHSS); the two nodes
+    are kept aligned by a shared, timer-driven hopping schedule and a lightweight
+    node-discovery synchronization protocol. A custom 32-byte packet format
+    multiplexes text, voice and control traffic over the same radio and carries a
+    compact forward-error-correction header. Reliability is provided by a layered
+    FEC subsystem owned by the transceiver: a CRC-16 detects corruption on every
+    protected packet, an automatic-repeat-request (ARQ) scheme guarantees exact
+    delivery of chat messages, and an XOR block code reconstructs lost real-time
+    audio packets without retransmission. Voice is captured as
+    8#sym.space.nobreak kHz 8-bit PCM and streamed half-duplex through a fully
+    non-blocking cooperative pipeline, so channel hopping is never interrupted.
+    Chat text is obfuscated with a lightweight XOR cipher. A built-in
+    bit-error-rate (BER) test mode and live FEC counters allow link quality to be
+    measured and analysed. The result demonstrates that robust, jam-resistant,
+    low-cost digital voice and messaging can be realised entirely on commodity
+    hardware.
+  ],
 )
-
-#show heading.where(level: 1): it => it
-#set heading(numbering: "C1.1-", supplement: [Chapter])
-#show table: set par(justify: false)
 
 // ===========================================================================
 // HELPERS
@@ -60,42 +87,8 @@
   stroke: 0.5pt + luma(215),
 )[#text(size: 8.5pt)[#it]]
 
-// ===========================================================================
-// FRONT MATTER
-// ===========================================================================
-
-#outline(title: [Table of Contents], depth: 2)
-#pagebreak()
-
-#outline(title: [Table of Figures], target: figure.where(kind: image))
-#pagebreak()
-
-#heading(numbering: none, outlined: false)[Abstract]
-
-FELCOM is a pair of battery-powered handheld radios that provide secure,
-infrastructure-free text and voice communication in the 2.4#sym.space.nobreak GHz
-ISM band. Each unit is built around an ESP32 microcontroller driving an
-nRF24L01+ transceiver, an INMP441 I#super[2]S microphone, a DAC, amplifier and
-speaker audio chain, an OLED display and tactile controls, all integrated on a
-custom PCB. To resist narrowband jamming and lower the probability of
-interception, the link continuously hops across six interference-free channels
-using software-controlled Frequency-Hopping Spread Spectrum (FHSS); the two nodes
-are kept aligned by a shared, timer-driven hopping schedule and a lightweight
-node-discovery synchronization protocol. A custom 32-byte packet format
-multiplexes text, voice and control traffic over the same radio and carries a
-compact forward-error-correction header. Reliability is provided by a layered FEC
-subsystem owned by the transceiver: a CRC-16 detects corruption on every
-protected packet, an automatic-repeat-request (ARQ) scheme guarantees exact
-delivery of chat messages, and an XOR block code reconstructs lost real-time
-audio packets without retransmission. Voice is captured as 8#sym.space.nobreak kHz
-8-bit PCM and streamed half-duplex through a fully non-blocking cooperative
-pipeline, so channel hopping is never interrupted. Chat text is obfuscated with a
-lightweight XOR cipher. A built-in bit-error-rate (BER) test mode and live FEC
-counters allow link quality to be measured and analysed. The result demonstrates
-that robust, jam-resistant, low-cost digital voice and messaging can be realised
-entirely on commodity hardware.
-
-#pagebreak()
+// Front matter (cover, Table of Contents, Table of Figures, Abstract) is
+// generated by the template from the parameters above.
 
 // ===========================================================================
 // CHAPTER 1: INTRODUCTION
@@ -125,7 +118,7 @@ brief, scattered bursts. The same principle underlies Bluetooth today.
 
 == The Project
 
-FELCOM (a contraction of the team's initials and "communication") applies these
+FELCOM applies these
 ideas on inexpensive, off-the-shelf hardware. It is a self-contained handheld
 device (no phone, no router, no SIM card) that lets two units exchange text
 messages and live voice directly over the 2.4#sym.space.nobreak GHz band. The
@@ -155,8 +148,8 @@ The project set out to:
 On the environment and on society, a device of this kind is useful precisely
 where conventional networks are not: disaster relief, hiking and expeditions,
 events with saturated cellular coverage, and education. It is built from cheap,
-widely available parts (a complete two-unit build costs well under
-\$100), which keeps it accessible. Equally, the project is a compact, hands-on
+widely available parts (the full two-unit build costs roughly
+\$95), which keeps it accessible. Equally, the project is a compact, hands-on
 study of the entire wireless stack (radio, channel access, framing, error
 control, real-time media and basic security), which is its main pedagogical
 value.
@@ -180,8 +173,6 @@ upward.
   network infrastructure, over a frequency-hopping link.],
   kind: image,
 ) <fig-context>
-
-#pagebreak()
 
 // ===========================================================================
 // CHAPTER 2: SYSTEM OVERVIEW
@@ -208,13 +199,13 @@ Each FELCOM unit is identical and runs the same firmware (only a one-byte
 The complete schematic and the routed PCB are shown below.
 
 #figure(
-  image("hardware/imgs/schematic.png", width: 95%),
+  image("hardware/imgs/schematic.png", width: 80%),
   caption: [Full hardware schematic of a FELCOM unit (ESP32, nRF24L01+, INMP441,
   audio amplifier, OLED and controls).],
 ) <fig-schematic>
 
 #figure(
-  image("hardware/imgs/pcb.png", width: 70%),
+  image("hardware/imgs/pcb.png", width: 48%),
   caption: [The custom-designed FELCOM PCB layout.],
 ) <fig-pcb>
 
@@ -246,8 +237,6 @@ around.
   caption: [Layered firmware architecture and the non-blocking main loop.],
   kind: image,
 ) <fig-arch>
-
-#pagebreak()
 
 // ===========================================================================
 // CHAPTER 3: FHSS
@@ -340,8 +329,6 @@ audio pipeline (Chapter 6).
   kind: image,
 ) <fig-sync-fsm>
 
-#pagebreak()
-
 // ===========================================================================
 // CHAPTER 4: PACKET PROTOCOL / DATA LINK
 // ===========================================================================
@@ -406,8 +393,6 @@ different packet types and hand each application exactly its own payload.
   caption: [The 32-byte frame and the two payload layouts (protected and ARQ).],
   kind: image,
 ) <fig-packet>
-
-#pagebreak()
 
 // ===========================================================================
 // CHAPTER 5: FEC
@@ -489,8 +474,6 @@ true error rate of the channel rather than a CRC-cleaned version of it.
   kind: image,
 ) <fig-arq>
 
-#pagebreak()
-
 // ===========================================================================
 // CHAPTER 6: AUDIO
 // ===========================================================================
@@ -530,12 +513,10 @@ boundary the in-flight packet is often lost, and the block code transparently
 rebuilds it, smoothing what would otherwise be an audible click every half second.
 
 #figure(
-  image("diagrams/audio-pipeline.png", width: 90%),
+  image("diagrams/audio-pipeline.png", width: 82%),
   caption: [The non-blocking real-time audio pipeline, from microphone to speaker.],
   kind: image,
 ) <fig-audio>
-
-#pagebreak()
 
 // ===========================================================================
 // CHAPTER 7: SECURITY & APPLICATIONS
@@ -549,21 +530,19 @@ key) before transmission and reversed on receipt, so the message is not sent in
 clear over the air. Combined with the unknown hopping sequence, which already
 makes the traffic hard to capture coherently, this gives a basic layer of
 confidentiality appropriate to the platform. We are explicit that this is
-obfuscation, not strong cryptography; replacing it with a real cipher is listed in
-future work.
+obfuscation, not strong cryptography; a stronger, authenticated cipher would be a
+clear improvement.
 
 == Applications
 
 Four screens exercise the stack:
 
-- *Chat*: reliable (ARQ + CRC), encrypted point-to-point or broadcast text, shown
-  on a scrolling OLED log.
+- *Chat*: encrypted text, sent point-to-point (reliable: ARQ + CRC) or broadcast
+  (CRC only), shown on a scrolling OLED log.
 - *Audio*: the half-duplex walkie-talkie of Chapter 6.
 - *Pong*: a two-player real-time game whose paddle/ball updates validate
   low-latency *bidirectional* traffic over the hopping link.
 - *RF / BER Test*: a diagnostic mode (next chapter).
-
-#pagebreak()
 
 // ===========================================================================
 // CHAPTER 8: TESTING & RESULTS
@@ -605,8 +584,6 @@ loss FHSS avoids under interference, how often XOR FEC rebuilds audio packets
 (especially at hop boundaries), how many ARQ retransmissions chat needs, and where
 the link still struggles (e.g. after clock drift).]
 
-#pagebreak()
-
 // ===========================================================================
 // CHAPTER 9: CHALLENGES
 // ===========================================================================
@@ -642,8 +619,6 @@ the link still struggles (e.g. after clock drift).]
   fixed 28-byte payload forced the chat text length and the audio frame size to be
   re-derived so nothing overflowed the single on-air frame.
 
-#pagebreak()
-
 // ===========================================================================
 // CHAPTER 10: DISTRIBUTION OF WORK
 // ===========================================================================
@@ -668,48 +643,27 @@ the link still struggles (e.g. after clock drift).]
 All three members contributed to integration, testing and debugging across the
 whole system.
 
-#pagebreak()
-
 // ===========================================================================
 // CONCLUSION
 // ===========================================================================
-= Conclusion and Future Work
+= Conclusion
 
 FELCOM shows that resilient, jam-resistant, infrastructure-free communication,
 both text and live voice, can be built on inexpensive, commodity hardware. The
 working system hops across six interference-free channels under software control,
-keeps two nodes aligned despite clock drift, multiplexes several traffic types
-over one 32-byte frame, and matches a forward-error-correction mechanism to each:
-CRC detection everywhere, ARQ for exact chat delivery, and an XOR block code that
-repairs real-time audio without retransmission. The non-blocking architecture is
-what ties it together, letting voice stream while the radio keeps hopping.
-
-Several directions would extend the work:
-
-- *Stronger encryption*: replace the XOR cipher with an authenticated block cipher
-  (e.g. AES) and proper key exchange for genuine end-to-end security, and extend
-  confidentiality to the audio stream.
-- *Better synchronization*: implement the planned implicit clock correction on
-  every received packet and automatic out-of-sync recovery, removing the need for
-  manual re-SYNC.
-- *Audio quality*: push-to-talk hardware, full-duplex operation, a short RX
-  pre-buffer, and light compression for clearer voice.
-- *Larger networks*: extend addressing and discovery beyond point-to-point toward
-  a small multi-node mesh.
-- *Power and form factor*: battery management and a smaller enclosure for a truly
-  portable handheld.
-
-#pagebreak()
+keeps two nodes aligned on a shared hopping schedule, multiplexes several traffic
+types over one 32-byte frame, and matches a forward-error-correction mechanism to
+each: CRC detection everywhere, ARQ for exact chat delivery, and an XOR block code
+that repairs real-time audio without retransmission. The non-blocking architecture
+is what ties it together, letting voice stream while the radio keeps hopping.
+Natural extensions include a stronger, authenticated cipher (such as AES) applied
+to both text and audio, automatic clock-drift correction to remove the manual
+re-sync step, and a move beyond the point-to-point link toward a small multi-node
+network.
 
 // ===========================================================================
-// ACKNOWLEDGMENTS & REFERENCES
+// REFERENCES
 // ===========================================================================
-= Acknowledgments
-
-We thank our supervisor, Dr. Hadi Jerdek, for his guidance throughout the project,
-and the Faculty of Engineering at the Lebanese University for the resources and
-support that made this work possible.
-
 = References
 
 #set enum(numbering: "[1]")
