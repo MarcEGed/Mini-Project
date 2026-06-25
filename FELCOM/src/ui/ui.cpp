@@ -1,5 +1,8 @@
 #include "ui.h"
 
+#include <Arduino.h>
+extern unsigned long millis();
+
 #include "AboutUI.h"
 #include "AudioUI.h"
 #include "ChatUI.h"
@@ -8,6 +11,9 @@
 #include "RFTestUI.h"
 #include "SyncTestUI.h"
 #include "audio.h"
+
+static uint32_t sLastPongUpdateMs = 0;
+static constexpr uint32_t kPongUpdateIntervalMs = 30;
 
 void ui::init(ChatHandler* chatHandler, PongGame* pong) {
     this->chat = chatHandler;
@@ -128,6 +134,12 @@ void ui::onPongStateChanged() {
         return;
     }
 
+    const uint32_t now = millis();
+    if (now - sLastPongUpdateMs < kPongUpdateIntervalMs) {
+        return;
+    }
+
+    sLastPongUpdateMs = now;
     update(UIUpdateType::Full, static_cast<uint8_t>(PongAutoScreen));
 }
 

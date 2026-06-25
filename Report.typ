@@ -153,7 +153,7 @@ The project set out to:
 The system is built on the Espressif ESP32 (dual-core, hardware timers, I#super[2]S
 and DAC peripherals) paired with the Nordic nRF24L01+, a 2.4 GHz
 GFSK transceiver that performs modulation in hardware and exposes 125
-software-selectable 1 MHz channels, the property that makes FHSS possible. 
+software-selectable 1 MHz channels making FHSS possible. 
 
 // Add a text that reference this image, also update this image and remove the no network infrastructure box.
 #figure(
@@ -401,8 +401,8 @@ subsystem combines three complementary mechanisms.
 
 - *CRC-16-CCITT (detection).* Every protected packet carries a 16-bit checksum in
   the last two payload bytes. On receipt the CRC is recomputed; a mismatch means
-  corruption and the packet is silently dropped. This is the baseline that turns a
-  noisy link into a clean-or-nothing one.
+  corruption and the packet is silently dropped. This turns a
+  noisy link into a "clean or nothing" one.
 - *ARQ (retransmission).* For chat, which is infrequent but must be exact, the
   sender attaches a sequence number, transmits, and *waits for an ACK*,
   retransmitting on a 200 ms timeout up to three times. The
@@ -413,7 +413,7 @@ subsystem combines three complementary mechanisms.
   waiting for a retransmission is pointless, the sender groups every four data
   packets and transmits a fifth *parity* packet equal to their bitwise XOR. If any
   *one* of the five packets in a block is lost, the receiver reconstructs it by
-  XOR-ing the four it did receive. No round trip and no waiting: losses are
+  XOR-ing the four it did receive. Losses are
   repaired in the forward direction only.
 
 #figure(
@@ -480,8 +480,7 @@ every 500 ms.
 
 Voice is captured from the INMP441 as *8 kHz, 8-bit mono PCM*,
 deliberately low-fidelity, which is enough for intelligible speech and keeps the
-data rate low. The microphone is read over I#super[2]S without blocking (zero
-timeout). Each sample is then conditioned in software: a running DC-offset
+data rate low. The microphone is read over I#super[2]S without blocking. Each sample is then conditioned in software: a running DC-offset
 estimate is subtracted (an exponential moving average), a gain factor is applied,
 and the result is clamped to 8 bits. Twenty-four conditioned samples
 (3 ms of audio) are packed into one `AudioPayload`, which is
@@ -521,9 +520,9 @@ Chat text is passed through a lightweight *XOR stream cipher* (a repeating 4-byt
 key) before transmission and reversed on receipt, so the message is not sent in
 clear over the air. Combined with the unknown hopping sequence, which already
 makes the traffic hard to capture coherently, this gives a basic layer of
-confidentiality appropriate to the platform. We are explicit that this is
+confidentiality appropriate to the platform. It is worth noting that this is
 obfuscation, not strong cryptography; a stronger, authenticated cipher would be a
-clear improvement.
+clear improvement in terms of security.
 
 == Applications
 
