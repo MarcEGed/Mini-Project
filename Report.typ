@@ -16,28 +16,26 @@
   show-list-of-figure: true,
   show-list-of-tables: false,
   abstract: [
-    FELCOM is a pair of handheld radios that provide secure, infrastructure-free
-    text and voice communication in the 2.4#sym.space.nobreak GHz ISM band. Each
+    FELCOM is a handheld radio that provides secure, 
+    text and voice communication in the 2.4 GHz ISM band. Each
     unit is built around an ESP32 microcontroller driving an nRF24L01+
     transceiver, an INMP441 I#super[2]S microphone, a DAC, amplifier and speaker
     audio chain, an OLED display and tactile controls, all integrated on a custom
     PCB. To resist narrowband jamming and lower the probability of interception,
     the link continuously hops across six interference-free channels using
-    software-controlled Frequency-Hopping Spread Spectrum (FHSS); the two nodes
-    are kept aligned by a shared, timer-driven hopping schedule and a lightweight
-    node-discovery synchronization protocol. A custom 32-byte packet format
+    Frequency-Hopping Spread Spectrum (FHSS). The nodes
+    are kept aligned by a shared, timer-driven hopping schedule. A custom 32-byte packet format
     multiplexes text, voice and control traffic over the same radio and carries a
     compact forward-error-correction header. Reliability is provided by a layered
     FEC subsystem owned by the transceiver: a CRC-16 detects corruption on every
     protected packet, an automatic-repeat-request (ARQ) scheme guarantees exact
     delivery of chat messages, and an XOR block code reconstructs lost real-time
     audio packets without retransmission. Voice is captured as
-    8#sym.space.nobreak kHz 8-bit PCM and streamed half-duplex through a fully
-    non-blocking cooperative pipeline, so channel hopping is never interrupted.
+    8 kHz 8-bit PCM.
     Chat text is obfuscated with a lightweight XOR cipher. A built-in
     bit-error-rate (BER) test mode and live FEC counters allow link quality to be
     measured and analysed. The result demonstrates that robust, jam-resistant,
-    low-cost digital voice and messaging can be realised entirely on commodity
+    low-cost digital voice and messaging can be realized entirely on commodity
     hardware.
   ],
 )
@@ -102,15 +100,13 @@ fixed infrastructure: cell towers, base stations, the Internet backbone. That
 infrastructure is also a single point of failure. In a natural disaster, in a
 remote area, or in any situation where the network is congested, censored or
 deliberately disabled, the same devices that work everywhere suddenly work
-nowhere. This motivates *off-grid* communication: a direct radio link between two
+nowhere. This motivates off-grid communication: a direct radio link between two
 people that depends on no third party.
 
 A direct radio link, however, is exposed. A fixed-frequency transmitter is easy
 to locate, easy to intercept and trivial to jam, since a single interfering
 source on the right frequency is enough to silence it. The classical answer to
-this problem is *spread spectrum*, an idea whose frequency-hopping variant was
-famously patented by Hedy Lamarr and George Antheil in 1942 as a jam-resistant
-guidance scheme for torpedoes. By rapidly and unpredictably changing the carrier
+this problem is spread spectrum. By rapidly and unpredictably changing the carrier
 frequency, a frequency-hopping system spreads its energy across a wide band: a
 narrowband jammer can only spoil the few hops that happen to land on its
 frequency, and an eavesdropper who does not know the hopping sequence sees only
@@ -119,10 +115,9 @@ brief, scattered bursts. The same principle underlies Bluetooth today.
 == The Project
 
 FELCOM applies these
-ideas on inexpensive, off-the-shelf hardware. It is a self-contained handheld
-device (no phone, no router, no SIM card) that lets two units exchange text
-messages and live voice directly over the 2.4#sym.space.nobreak GHz band. The
-link is made resilient by software Frequency-Hopping Spread Spectrum, protected
+ideas on inexpensive, off-the-shelf hardware. It lets two units exchange text
+messages and live voice directly over the 2.4 GHz band. The
+link is made resilient by Frequency-Hopping Spread Spectrum, protected
 by a custom packet protocol with forward error correction, and the text is
 obfuscated by a lightweight cipher. Two extra modes, a real-time multiplayer Pong
 game and an RF/BER test screen, were added to validate, respectively, low-latency
@@ -132,41 +127,35 @@ bidirectional traffic and raw link quality.
 
 The project set out to:
 
-- build a working two-node handheld system on an ESP32 + nRF24L01+ platform;
-- implement software FHSS over interference-free channels, with a synchronization
-  mechanism robust to clock drift and to new nodes joining;
+- build a working two-node handheld system on an ESP32 + nRF24L01+ platform.
+- implement FHSS, with a synchronization
+  mechanism robust to clock drift and to new nodes joining.
 - define a flexible packet protocol able to multiplex text, voice and control
-  traffic over one radio;
+  traffic over one radio.
 - add a layered forward-error-correction subsystem (detection, retransmission,
-  and forward recovery) matched to each traffic type;
-- stream intelligible real-time voice without breaking channel hopping;
-- provide a debug mode that measures packet loss and bit-error rate; and
+  and forward recovery) matched to each traffic type.
+- provide a debug mode that measures packet loss and bit-error rate.
 - integrate everything onto a custom PCB.
 
-== Impact
+// == Impact
 
-On the environment and on society, a device of this kind is useful precisely
-where conventional networks are not: disaster relief, hiking and expeditions,
-events with saturated cellular coverage, and education. It is built from cheap,
-widely available parts (the full two-unit build costs roughly
-\$95), which keeps it accessible. Equally, the project is a compact, hands-on
-study of the entire wireless stack (radio, channel access, framing, error
-control, real-time media and basic security), which is its main pedagogical
-value.
+// On the environment and on society, a device of this kind is useful precisely
+// where conventional networks are not: disaster relief, hiking and expeditions,
+// events with saturated cellular coverage, and education. It is built from cheap,
+// widely available parts (the full two-unit build costs roughly
+// \$95), which keeps it accessible. Equally, the project is a compact, hands-on
+// study of the entire wireless stack (radio, channel access, framing, error
+// control, real-time media and basic security), which is its main pedagogical
+// value.
 
 == Technology and Methodology
 
 The system is built on the Espressif ESP32 (dual-core, hardware timers, I#super[2]S
-and DAC peripherals) paired with the Nordic nRF24L01+, a 2.4#sym.space.nobreak GHz
+and DAC peripherals) paired with the Nordic nRF24L01+, a 2.4 GHz
 GFSK transceiver that performs modulation in hardware and exposes 125
-software-selectable 1#sym.space.nobreak MHz channels, the property that makes
-software FHSS possible. Development followed the phased plan laid out in the
-project proposal: components and basic UI first, then the FHSS and packet
-protocol, then forward error correction, then real-time audio, and finally
-hardware integration on a PCB, with continuous BER testing throughout. The
-remaining chapters follow the resulting architecture from the bottom of the stack
-upward.
+software-selectable 1 MHz channels, the property that makes FHSS possible. 
 
+// Add a text that reference this image, also update this image and remove the no network infrastructure box.
 #figure(
   image("diagrams/context.png", width: 100%),
   caption: [System context: two handhelds communicating directly, with no
@@ -182,9 +171,12 @@ upward.
 == Hardware
 
 Each FELCOM unit is identical and runs the same firmware (only a one-byte
-`NODE_ID` differs). The core is an *ESP32 DevKit V1*. Around it:
+`NODE_ID` differs). 
 
-#table(
+The core is an ESP32 DevKit V1. Around it:
+
+
+#figure(table(
   columns: (auto, 1fr),
   inset: 5pt,
   align: (left, left),
@@ -194,6 +186,8 @@ Each FELCOM unit is identical and runs the same firmware (only a one-byte
   [DAC, LM386, speaker], [Voice out; ESP32 DAC1 = GPIO25 into an audio amplifier.],
   [OLED 0.96" (SSD1306)], [128#sym.times#h(0pt)64 status/UI display; I#super[2]C, SDA = GPIO21, SCL = GPIO22.],
   [Buttons], [Navigation: Up/Down/Select/Back (GPIO32/33/27/14).],
+),
+caption: [*ADD CAPTION*]
 )
 
 The complete schematic and the routed PCB are shown below.
@@ -216,18 +210,17 @@ FEC, audio) independent and testable:
 
 - *Physical layer*: the RF24 driver and the raw nRF24L01+ register access.
 - *Transceiver layer* (`lib/transceiver`): owns the radio. It performs channel
-  access (CSMA), address filtering, and *all* error-control logic. Crucially, the
-  FEC subsystem is *built into* the transceiver: application code never calls FEC
+  access (CSMA), address filtering, and all error-control logic. Crucially, the
+  FEC subsystem is built into the transceiver: application code never calls FEC
   routines directly, it simply uses `write`, `writeReliable`, `read`, `audioTx`
   and `audioRx`.
 - *Application layer*: chat, audio walkie-talkie, Pong, and the RF/BER test, each
   with its own payload struct and OLED screen.
 
 A deliberate design decision shapes everything above the radio: the main loop is
-*cooperative and non-blocking*. There are no FreeRTOS tasks for audio. Channel
-hopping, UI input, message handling and audio capture/playback are all short
+cooperative and non-blocking. Channel hopping, UI input, message handling and audio capture/playback are all short
 steps pumped from a single `loop()`. A hardware timer increments a free-running
-counter every 500#sym.space.nobreak ms; the loop reads it and hops when it
+counter every 500 ms, the loop reads it and hops when it
 changes. Because no step blocks, hopping always happens on time even while audio
 is streaming, which is the central constraint the whole architecture is built
 around.
@@ -243,28 +236,28 @@ around.
 // ===========================================================================
 = Frequency-Hopping Spread Spectrum
 
-FHSS is the heart of the project and the source of its jam- and
-detection-resistance. The nRF24L01+ does the modulation; FHSS is the software
-layer that keeps changing *which* of its 125 channels is active.
+FHSS is the heart of the project and the source of its jam and
+detection-resistance. The nRF24L01+ does the modulation, the firmware
+ keeps changing which of its 125 channels is active.
 
 == Channel Selection
 
-The 2.4#sym.space.nobreak GHz band is crowded, mostly by Wi-Fi, whose channels
-are 20 to 22#sym.space.nobreak MHz wide. Hopping blindly would land many hops
+The 2.4 GHz band is crowded, mostly by Wi-Fi, whose channels
+are 20 to 22 MHz wide. Hopping blindly would land many hops
 inside a Wi-Fi channel and lose them. We therefore restrict hopping to the top of
-the band (around 2.51#sym.space.nobreak GHz, nRF channels in the 110 to 115
+the band (around 2.51 GHz, nRF channels in the 110 to 115
 range), which sits above the standard Wi-Fi allocations and is normally quiet.
 The current build uses a deliberately small hop set of six channels,
 `{110, 111, 112, 113, 114, 115}`, which trades a little spreading gain for far
-easier and faster synchronization (see below).
+easier and faster synchronization.
 
 == Timer-Driven Hopping
 
-Both nodes share the same hop schedule. A hardware timer increments a global
-counter every 500#sym.space.nobreak ms; the active channel is simply
+Nodes share the same hop schedule. A hardware timer increments a global
+counter every 500 ms, the active channel is simply
 `HOPPING_CHANNELS[counter mod 6]`. Because both units derive the channel from the
-same counter value, they stay on the same frequency *as long as their counters
-agree*. A full sweep of the six channels takes 3#sym.space.nobreak seconds.
+same counter value, they stay on the same frequency as long as their counters
+agree. A full sweep of the six channels takes 3 seconds.
 
 #figure(
   ```cpp
@@ -280,12 +273,12 @@ agree*. A full sweep of the six channels takes 3#sym.space.nobreak seconds.
 
 == The Synchronization Problem
 
-Synchronization is the hardest part of any FHSS system, and we evaluated the
+Synchronization is the hardest part of any communication system, and we evaluated the
 classic approaches and their failure modes:
 
 - *Hop on packet reception*: a receiver that misses a packet stalls on the wrong
   channel until the transmitter happens to revisit it.
-- *Hop on a timer*: robust moment to moment, but the two clocks slowly *drift*
+- *Hop on a timer*: robust moment to moment, but the two clocks slowly drift
   apart, and once they diverge they may never re-align on their own.
 
 Both also share the *new-node* problem: a unit powering on has no idea where in
@@ -309,12 +302,11 @@ one.
 
 == Channel Access (CSMA)
 
-Because several packet types share the link, ordinary transmissions use *Carrier
-Sense Multiple Access*: before sending, the radio briefly listens
-(`testRPD()`); if the channel is busy it backs off a random 1 to 10#sym.space.nobreak ms
-and retries (up to five times). Real-time audio is the one exception: it
-deliberately *bypasses* CSMA backoff, because millisecond stalls would starve the
-audio pipeline (Chapter 6).
+Because several packet types share the link, ordinary transmissions use Carrier
+Sense Multiple Access: before sending, the radio briefly listens, if the channel is busy it backs off a random 1 to 10 ms
+and retries (up to five times). Real-time audio is the one exception, it
+deliberately bypasses CSMA backoff, because millisecond stalls would starve the
+audio pipeline.
 
 #figure(
   image("diagrams/hop-timeline.png", width: 80%),
@@ -413,7 +405,7 @@ subsystem combines three complementary mechanisms.
   noisy link into a clean-or-nothing one.
 - *ARQ (retransmission).* For chat, which is infrequent but must be exact, the
   sender attaches a sequence number, transmits, and *waits for an ACK*,
-  retransmitting on a 200#sym.space.nobreak ms timeout up to three times. The
+  retransmitting on a 200 ms timeout up to three times. The
   receiver only ACKs a message after it has safely buffered it, so a lost frame is
   re-sent rather than falsely confirmed. ARQ guarantees delivery but blocks
   briefly, so it is used only where latency does not matter.
@@ -482,17 +474,17 @@ true error rate of the channel rather than a CRC-cleaned version of it.
 The audio mode turns the pair into a half-duplex *walkie-talkie*: one node TALKS,
 the other LISTENS, and Select toggles the role. It is the most demanding feature,
 because live voice must coexist with channel hopping that interrupts the link
-every 500#sym.space.nobreak ms.
+every 500 ms.
 
 == Format and Capture
 
-Voice is captured from the INMP441 as *8#sym.space.nobreak kHz, 8-bit mono PCM*,
+Voice is captured from the INMP441 as *8 kHz, 8-bit mono PCM*,
 deliberately low-fidelity, which is enough for intelligible speech and keeps the
 data rate low. The microphone is read over I#super[2]S without blocking (zero
 timeout). Each sample is then conditioned in software: a running DC-offset
 estimate is subtracted (an exponential moving average), a gain factor is applied,
 and the result is clamped to 8 bits. Twenty-four conditioned samples
-(3#sym.space.nobreak ms of audio) are packed into one `AudioPayload`, which is
+(3 ms of audio) are packed into one `AudioPayload`, which is
 sized to *exactly* fill the 26-byte protected user region.
 
 == Transport and Playback
@@ -501,7 +493,7 @@ Each payload is handed to `audioTx`, which wraps it with CRC + XOR-block FEC and
 transmits it (skipping CSMA backoff, as noted earlier). On the listening side,
 recovered payloads come back through `audioRx` and are written into a large ring
 buffer that absorbs network jitter; samples are then drained to the DAC (GPIO25)
-at a precise 8#sym.space.nobreak kHz using `micros()` timing. No extra hardware
+at a precise 8 kHz using `micros()` timing. No extra hardware
 timer is needed, since the hop counter already owns one.
 
 == Non-Blocking Pipeline
@@ -599,12 +591,12 @@ the link still struggles (e.g. after clock drift).]
   and select the correct DMA slot in software (`AUDIO_I2S_SLOT_INDEX`); this cost a
   lot of debugging time and is now documented so it is not rediscovered.
 
-- *Audio glitching at hop boundaries.* Each 500#sym.space.nobreak ms hop tends to
+- *Audio glitching at hop boundaries.* Each 500 ms hop tends to
   drop the in-flight packet. The XOR block code rebuilds one loss per block of
   four, and a sizeable RX ring buffer absorbs the jitter, which together smooth the
   audible clicks.
 
-- *CSMA stalling real-time audio.* The 1 to 10#sym.space.nobreak ms CSMA backoff,
+- *CSMA stalling real-time audio.* The 1 to 10 ms CSMA backoff,
   fine for chat, starved the audio pipeline and caused choppy playback. Audio
   transmission was made to bypass backoff; collisions are tolerated because the
   mode is half-duplex and already FEC-protected.

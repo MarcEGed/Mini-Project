@@ -30,6 +30,38 @@ When a new node connects to the network, for implementation:
 
 A good implementation would be, one that minimizes the amount of messages lost due to the nodes being out of sync, and allows new nodes to hop on the network with no overhead or creating it's own network.
 
+## Current Implementation
+
+The current implementation uses a **manual synchronization** approach via the SyncTest UI:
+
+- **Timer-based Hopping**: A hardware timer runs with a 500ms period (`timerAlarmWrite(COUNTER_TIMER, 500000, true)`). Nodes hop channels based on `readCounter() % HOPPING_CHANNELS_SIZE`, where `HOPPING_CHANNELS_SIZE = 6` (channels 110-115).
+
+- **Manual Sync via UI**: In the SyncTest screen, pressing the button:
+  1. Broadcasts an `ND_SYNC` packet containing the current counter value via `sendSync(counter)`
+  2. Resets the local counter timer via `resetCounterTimer()`
+  3. Flashes the SYNC button visually for 200ms
+
+- **Receiving Sync**: When an `ND_SYNC` packet is received:
+  1. The local counter is set to the received `timer_val` via `setCounter()`
+  2. The received node is added to the synced nodes list
+  3. The SYNC button flashes visually
+
+- **ND_SYNC Packet Properties**:
+  - Sent as **raw/unprotected** (FecScheme::NONE) to ensure it's never dropped by CRC validation
+  - Contains: `timer_val` (int64_t), `nbSyncedNodes` (uint8_t), and `syncedNodes[10]` (array of node IDs)
+  - Broadcast to all nodes (dst_node_id = 0xFF)
+
+- **Synchronization Mechanism**: All nodes that receive the sync packet reset their counter to the same value, ensuring they all hop to the same channel at the same time. The counter increments every 500ms, and channel changes occur when `counter % 6` changes.
+
+- **Limitations**:
+  - Requires manual user intervention to synchronize
+  - No automatic drift compensation between hops
+  - No automatic out-of-sync detection
+  - New nodes must manually sync via the SyncTest UI
+  - Clock drift between nodes will eventually cause desynchronization
+
+This approach prioritizes simplicity and reliability (sync packets are never dropped) over automatic synchronization.
+
 # Network Layer
 ## packet format
 32 Bytes can be used.
@@ -55,54 +87,57 @@ A good implementation would be, one that minimizes the amount of messages lost d
 | ACK       |
 
 ## protocol
-- Nodes must implement CSMA using `bool RF24::testRPD(void)` along with a **random backoff** mechanism before transmission to handle collisions gracefully.
+- Nodes implement CSMA using `bool RF24::testRPD(void)` along with a **random backoff** mechanism (1-10ms) before transmission to handle collisions gracefully. CSMA is **disabled for audio packets** to avoid blocking the real-time audio loop.
 - `dst_node_id`, if set to `0xFF`, means the packet is broadcast and is meant for everyone on the network.
-- On *every* successful packet reception, nodes should read their current hardware timer. If the timer is slightly off from the expected slot time, they must perform a minor adjustment (`timerWrite`) to compensate for local clock drift. (Not yet implemented.)
-- **Out of Sync**: If a node goes 1000 hops (~2 seconds) with no packets received or transmitted, it is assumed to be out of sync. It must stop hopping and enter a recovery state to broadcast an `ND_SYNC` packet. (Not yet implemented.)
-- **`ND_SYNC` Packets**: Contain the hardware timer counter value in the data section. In the current implementation, replies are sent directly to the requester (not broadcast).
-  - If the counter is `-1`, the transmitter is out of sync and is requesting a response to synchronize.
+- **Automatic drift compensation is not implemented** - nodes do not adjust their timers on packet reception.
+- **Out-of-sync detection is not implemented** - nodes do not detect when they are out of sync or automatically broadcast `ND_SYNC` packets.
+- **`ND_SYNC` Packets**: Contain the hardware timer counter value in the data section. In the current implementation:
+  - Broadcast to all nodes (dst_node_id = 0xFF)
+  - Sent as raw/unprotected (FecScheme::NONE) to prevent CRC drops
+  - Used only in the SyncTest UI for manual synchronization
+  - The counter value is always the sender's current counter (never -1)
 
-To join a network, nodes have two options:
-1. Choose a random channel from the hoppable list, wait for *any* packet to be received, transmit an `ND_SYNC` packet (utilizing random backoff), wait for responses from other nodes, and synchronize with the highest value of the counter received. (Current implementation is non-blocking and driven by the main loop.)
-2. Transmit an `ND_SYNC` packet with a counter value of `-1`, wait for a response, and set the counter value.
+To join a network, nodes currently must:
+1. Use the SyncTest UI to manually synchronize with an existing network by pressing the SYNC button
+2. All nodes will then reset their counter to the same value and begin hopping in sync
 
-If no replies are received within the join timeout, the node resets its timer to 0, enables hopping, and forms a new network.
+If nodes are not synchronized, they will be on different channels at different times, and communication will fail until manual synchronization is performed.
 
 ## Solution
-- Low number of hoppable channels.
-- Timer based hopping with implicit clock adjustment on every received packet.
-- Designated Time Master for idle network heartbeats.
-- `ND_SYNC` used for major synchronization, node discovery, and joining networks (similar to ARP).
+- Low number of hoppable channels (6 channels: 110-115).
+- Timer based hopping using a hardware timer (500ms period).
+- Manual synchronization via ND_SYNC packets broadcast from the SyncTest UI.
+- `ND_SYNC` used for manual synchronization and tracking which nodes are in sync.
 
 # Implementation Plan
 
 - **List of hoppable channels**: `110, 111, 112, 113, 114, 115`
-- **Timer frequency**: `2 ms` (Worst case 12 ms rotation)
-	- `timerBegin(uint8_t num, uint16_t divider, bool countUp)`
-	- `timerAttachInterrupt(hw_timer_t * timer, void (*userFunc)(void))`
-	- `timerAlarm(hw_timer_t * timer, uint64_t alarm_value, bool autoreload, uint64_t reload_count)`
-	- `timerRead(hw_timer_t * timer)`
-	- `timerWrite(hw_timer_t * timer, uint64_t val)`
+- **Timer frequency**: `500ms` (500000 microseconds, ~3s full rotation across 6 channels)
 
 ## Steps
 1. ~~**Packet Structure Update**~~ (Done): Define the new 32-byte generic packet struct using C++ bit-fields (`uint16_t type: 4; uint16_t fec: 12;`) to handle the `packet_type` and `FEC`. Protocol types live in `include/protocol.h`.
 2. ~~**Address Filtering**~~ (Done): Update the payload size to 32 bytes (`sizeof(FHSSPacket)`) in `setup()`. In `read()`, cast incoming data to `FHSSPacket*` and discard packets where `dst_node_id` is neither our node ID nor the broadcast ID (`0xFF`).
-3. ~~**CSMA & Random Backoff**~~ (Done): Implement carrier sensing using `RF24::testRPD()` in `write()`. Before transmitting, switch briefly to `RECEIVE` mode, wait 200us, verify the channel is clear, and if busy apply a random backoff delay (e.g., 1-10ms) before retrying.
-4. ~~**Setup Timer & Hopping Sequence**~~ (Done): Initialize the hardware timer with a 2ms frequency. Attach an interrupt that switches the NRF24 channel sequentially through the hoppable list.
-5. ~~**Network Joining Mechanism**~~ (Done): 
-	- Implement active join (broadcast `ND_SYNC` with counter -1, wait for response).
-	- Implement passive join (pick a random channel, wait for a packet, then broadcast `ND_SYNC` with backoff to synchronize).
-	- Auto-join on first transmit if not already joined.
+3. ~~**CSMA & Random Backoff**~~ (Done): Implement carrier sensing using `RF24::testRPD()` in `transmitPacket()`. Before transmitting, switch briefly to `RECEIVE` mode, verify the channel is clear, and if busy apply a random backoff delay (1-10ms) before retrying. Note: CSMA is disabled for audio packets via `transmitAudioPacket()`.
+4. ~~**Setup Timer & Hopping Sequence**~~ (Done): Initialize the hardware timer with a 500ms period (`timerAlarmWrite(COUNTER_TIMER, 500000, true)`). The main loop reads the counter and changes channels based on `readCounter() % HOPPING_CHANNELS_SIZE`.
+5. ~~**Manual Synchronization**~~ (Done): 
+	- Implement SyncTest UI with manual sync button
+	- Broadcast `ND_SYNC` packet with current counter value via `sendSync()`
+	- Reset local counter on sync packet reception via `setCounter()`
+	- Track synced nodes in `syncedNodes[]` array
 6. **Synchronization Maintenance (Implicit Piggybacking)**: 
-    - On every successful packet reception, compare the expected timer value with the actual hardware timer.
-    - Write a minor adjustment to the hardware timer (`timerWrite()`) to compensate for local clock drift.
-7. **Out-of-Sync Handling**: Implement a counter to track consecutive silent hops. If the network is entirely silent for 1000 hops (~2 seconds), declare the node out of sync and broadcast an `ND_SYNC` packet.
+    - **Not implemented**: Automatic drift compensation on packet reception
+    - **Not implemented**: Consecutive silent hop tracking
+7. **Out-of-Sync Handling**: 
+    - **Not implemented**: Automatic detection and recovery via `ND_SYNC` broadcast
 
 ## Relevant files
-- `include/protocol.h` — Protocol-level packet types and `FHSSPacket`/`NDSyncData`.
-- `lib/transceiver/transceiver.h` — FHSS state machine, join state, and packet helpers.
-- `lib/transceiver/transceiver.cpp` — FHSS hopping, CSMA, address filtering, join logic.
+- `include/config.h` — Hopping channel configuration (`HOPPING_CHANNELS`, `HOPPING_CHANNELS_SIZE`).
+- `include/protocol.h` — Protocol-level packet types, `FHSSPacket`, `NDSyncData`, `FecScheme`.
+- `lib/ftimers/ftimers.h` / `ftimers.cpp` — Hardware timer initialization, counter read/write/reset.
+- `lib/transceiver/transceiver.h` — FHSS state machine, synced nodes tracking, packet helpers.
+- `lib/transceiver/transceiver.cpp` — FHSS hopping, CSMA, address filtering, `sendSync()`, `writeRaw()`.
+- `src/ui/SyncTestUI.h` / `SyncTestUI.cpp` — Manual synchronization UI with SYNC button.
 - `src/chat/ChatMessage.h` — Chat payload struct.
 - `src/pong/PongMessage.h` — Pong payload struct.
 - `src/rf_test/TestMessage.h` — RF test payload struct.
-- `src/main.cpp` — Timer initialization and interrupt attachment.
+- `src/main.cpp` — Main loop with channel hopping logic based on counter modulo.
