@@ -20,15 +20,15 @@
     FELCOM is a handheld radio that provides secure, 
     text and voice communication in the 2.4 GHz ISM band. Each
     unit is built around an ESP32 microcontroller driving an nRF24L01+
-    transceiver, an INMP441 I#super[2]S microphone, a DAC, amplifier and speaker
+    transceiver, an INMP441 I2S microphone, a DAC, amplifier and speaker
     audio chain, an OLED display and tactile controls, all integrated on a custom
     PCB. To resist narrowband jamming and lower the probability of interception,
-    the link continuously hops across six interference-free channels using
+    the link continuously hops across six channels using
     Frequency-Hopping Spread Spectrum (FHSS). The nodes
-    are kept aligned by a shared, timer-driven hopping schedule. A custom 32-byte packet format
+    stay aligned by a shared, timer-driven hopping schedule. A custom 32-byte packet format
     multiplexes text, voice and control traffic over the same radio and carries a
-    compact forward-error-correction header. Reliability is provided by a layered
-    FEC subsystem owned by the transceiver: a CRC-16 detects corruption on every
+    compact forward-error-correction header. A layered
+    FEC subsystem in the transceiver provides reliability: a CRC-16 detects corruption on every
     protected packet, an automatic-repeat-request (ARQ) scheme guarantees exact
     delivery of chat messages, and an XOR block code reconstructs lost real-time
     audio packets without retransmission. Voice is captured as
@@ -115,27 +115,21 @@ brief, scattered bursts. The same principle underlies Bluetooth today.
 
 == The Project
 
-FELCOM applies these
-ideas on inexpensive, off-the-shelf hardware. It lets two units exchange text
-messages and live voice directly over the 2.4 GHz band. The
-link is made resilient by Frequency-Hopping Spread Spectrum, protected
-by a custom packet protocol with forward error correction, and the text is
-obfuscated by a lightweight cipher. Two extra modes, a real-time multiplayer Pong
-game and an RF/BER test screen, were added to validate, respectively, low-latency
-bidirectional traffic and raw link quality.
+FELCOM implements these ideas on inexpensive, off-the-shelf hardware. It lets two units exchange text
+messages and live voice directly over the 2.4 GHz band. The link uses FHSS for resilience,
+employing a custom packet protocol with forward error correction, and obfuscates text with
+a lightweight cipher. Two additional modes—a real-time multiplayer Pong game and an RF/BER test
+screen—validate low-latency bidirectional traffic and raw link quality, respectively.
 
 == Objectives
 
-The project set out to:
+The project aims to:
 
-- build a working two-node handheld system on an ESP32 + nRF24L01+ platform.
-- implement FHSS, with a synchronization
-  mechanism robust to clock drift and to new nodes joining.
-- define a flexible packet protocol able to multiplex text, voice and control
-  traffic over one radio.
-- add a layered forward-error-correction subsystem (detection, retransmission,
-  and forward recovery) matched to each traffic type.
-- provide a debug mode that measures packet loss and bit-error rate.
+- build a working two-node handheld system on an ESP32 + nRF24L01+ platform,
+- implement FHSS with a synchronization mechanism,
+- define a flexible packet protocol that multiplexes text, voice, and control traffic over one radio,
+- add a layered forward-error-correction subsystem (detection, retransmission, and forward recovery) matched to each traffic type,
+- provide a debug mode that measures packet loss and bit-error rate, and
 - integrate everything onto a custom PCB.
 
 // == Impact
@@ -151,15 +145,12 @@ The project set out to:
 
 == Technology and Methodology
 
-The system is built on the Espressif ESP32 (dual-core, hardware timers, I#super[2]S
-and DAC peripherals) paired with the Nordic nRF24L01+, a 2.4 GHz
-GFSK transceiver that performs modulation in hardware and exposes 125
-selectable 1 MHz channels making FHSS possible. 
+The system uses the Espressif ESP32 (dual-core, hardware timers, I2S, and DAC peripherals) paired with the Nordic nRF24L01+, a 2.4 GHz
+GFSK transceiver that performs modulation in hardware and exposes 125 selectable 1 MHz channels, enabling FHSS.
 
-// Add a text that reference this image, also update this image and remove the no network infrastructure box.
 #figure(
   image("diagrams/context.png", width: 100%),
-  caption: [Two handhelds communicating directly over a frequency-hopping link.],
+  caption: [Two handhelds communicating directly over a frequency-hopping link],
   kind: image,
 ) <fig-context>
 
@@ -178,53 +169,44 @@ The core is an ESP32 DevKit V1. Around it:
 
 #figure(
   image("diagrams/overview.png"),
-caption: [Block diagram of FELCOM]
+  caption: [Block diagram of FELCOM],
+  kind: image,
 )
 
-The complete schematic and the routed PCB are shown below.
+The complete schematic and routed PCB are shown below.
 
 #figure(
   image("hardware/imgs/schematic.png"),
-  caption: [Full hardware schematic of a FELCOM unit (ESP32, nRF24L01+, INMP441,
-  audio amplifier, OLED and controls).],
+  caption: [Full hardware schematic of a FELCOM unit (ESP32, nRF24L01+, INMP441, audio amplifier, OLED and controls)],
+  kind: image,
 ) <fig-schematic>
 
 #figure(
   image("hardware/imgs/pcb.png", width: 48%),
-  caption: [The custom-designed FELCOM PCB layout.],
+  caption: [Custom-designed FELCOM PCB layout],
+  kind: image,
 ) <fig-pcb>
 
-// TODO: INSERT PICTURE OF ASSEMBLED PRODUCT
 #figure(
   image("hardware/imgs/FELCOM assembled.jpeg", width: 80%),
-  caption: [Image of 2 FELCOM units fully assembled]
+  caption: [Two FELCOM units fully assembled],
+  kind: image,
 )
 
 == Firmware Architecture
 
-The firmware is organised in clear layers, which keeps each block (FHSS, framing,
-FEC, audio) independent and testable:
+The firmware is organized into clear layers, keeping each block (FHSS, framing, FEC, audio) independent and testable:
 
 - *Physical layer*: the RF24 driver and the raw nRF24L01+ register access.
-- *Transceiver layer* (`lib/transceiver`): owns the radio. It performs channel
-  access (CSMA), address filtering, and all error-control logic. Crucially, the
-  FEC subsystem is built into the transceiver: application code never calls FEC
-  routines directly, it simply uses `write`, `writeReliable`, `read`, `audioTx`
-  and `audioRx`.
-- *Application layer*: chat, audio walkie-talkie, Pong, and the RF/BER test, each
+- *Transceiver layer* (`lib/transceiver`): performs channel access (CSMA), address filtering, and all error-control logic. The transceiver integrates the FEC subsystem, so application code never calls FEC routines directly, it simply uses `write`, `writeReliable`, `read`, `audioTx`, and `audioRx`.
+- *Application layer*: chat, audio, Pong, Sync, and the RF/BER test, each
   with its own payload struct and OLED screen.
 
-The main loop is
-cooperative and non-blocking. Channel hopping, UI input, message handling and audio capture/playback are all short
-steps pumped from a single `loop()`. A hardware timer increments a free-running
-counter every 500 ms, the loop reads it and hops when it
-changes. Because no step blocks, hopping always happens on time even while audio
-is streaming, which is the main constraint the whole architecture is built
-around.
+The main loop uses a cooperative, non-blocking design. Channel hopping, UI input, message handling, and audio capture/playback are all short steps pumped from a single `loop()`. A hardware timer increments a free-running counter every 500 ms, the loop reads it and hops when it changes. Since no step blocks, hopping always occurs on time, even while audio streams. This is the main constraint driving the architecture.
 
 #figure(
   image("diagrams/architecture.png", width: 70%),
-  caption: [Layered firmware architecture and the non-blocking main loop.],
+  caption: [Layered firmware architecture and non-blocking main loop],
   kind: image,
 ) <fig-arch>
 
@@ -233,28 +215,15 @@ around.
 // ===========================================================================
 = Frequency-Hopping Spread Spectrum
 
-FHSS is the heart of the project and the source of its jam and
-detection-resistance. The nRF24L01+ does the modulation, the firmware
- keeps changing which of its 125 channels is active.
+FHSS is the heart of the project and provides its jam and detection resistance. The nRF24L01+ handles modulation in hardware while the firmware continuously changes the active channel from the transceiver's 125 available options.
 
 == Channel Selection
 
-The 2.4 GHz band is crowded, mostly by Wi-Fi, whose channels
-are 20 to 22 MHz wide. Hopping blindly would land many hops
-inside a Wi-Fi channel and lose them. We therefore restrict hopping to the top of
-the band (around 2.51 GHz, nRF channels in the 110 to 115
-range), which sits above the standard Wi-Fi allocations and is normally quiet.
-The current build uses a deliberately small hop set of six channels,
-`{110, 111, 112, 113, 114, 115}`, which trades a little spreading gain for far
-easier and faster synchronization.
+The 2.4 GHz band is crowded, primarily by Wi-Fi, whose channels are 20-22 MHz wide. Blind hopping would place many transmissions inside Wi-Fi channels, causing losses. The system therefore restricts hopping to the top of the band (approximately 2.51 GHz, corresponding to nRF24L01+ channels 110-115), which sits above standard Wi-Fi allocations and is typically quiet. The current build uses a deliberately small hop set of six channels, {110, 111, 112, 113, 114, 115}, trading some spreading gain for easier and faster synchronization.
 
 == Timer-Driven Hopping
 
-Nodes share the same hop schedule. A hardware timer increments a global
-counter every 500 ms, the active channel is simply
-`HOPPING_CHANNELS[counter mod 6]`. Because both units derive the channel from the
-same counter value, they stay on the same frequency as long as their counters
-agree. A full sweep of the six channels takes 3 seconds.
+All nodes share the same hop schedule. A hardware timer increments a global counter every 500 ms, the active channel is simply `HOPPING_CHANNELS[counter mod 6]`. Since all units derive the channel from the same counter value, they remain synchronized as long as their counters match. A full sweep through all six channels takes 3 seconds.
 
 #figure(
   ```cpp
@@ -262,35 +231,22 @@ agree. A full sweep of the six channels takes 3 seconds.
   uint32_t slot = readCounter() % HOPPING_CHANNELS_SIZE;
   xcvr.setChannel(HOPPING_CHANNELS[slot]);   // one of 110..115
   ```,
-  caption: [Timer-driven hopping: both nodes pick the channel from the same
-  free-running counter, so they stay aligned without exchanging anything.],
+  caption: [Timer-driven hopping: both nodes derive the channel from the same free-running counter, staying aligned without exchanging synchronization packets],
   kind: raw,
   supplement: [Listing],
 ) <lst-hop>
 
-== The Synchronization Problem
+== Synchronization
 
-Synchronization is the hardest part of any communication system, and we evaluated the
-classic approaches and their failure modes:
+Synchronization is critical for FHSS. The chosen approach uses timer-driven hopping with initial manual alignment. 
 
-- *Hop on packet reception*: a receiver that misses a packet stalls on the wrong
-  channel until the transmitter happens to revisit it.
-- *Hop on a timer*: robust moment to moment, but the two clocks slowly drift
-  apart, and once they diverge they may never re-align on their own.
+A free-running hardware timer on each node increments a counter every 500 ms, and all nodes derive the current channel from this counter using `HOPPING_CHANNELS[counter mod 6]`. This ensures nodes remain synchronized as long as their counters match. Testing revealed that the hardware timers exhibit negligible drift: no measurable desynchronization occurred over 3 hours of continuous operation.
 
-Both also share the new node problem: a unit powering on has no idea where in
-the schedule the network currently is. 
-
-In practice the two units are aligned from the dedicated sync screen before a
-chat or audio session. Clock drift has been deemed as acceptable, from testing no clock drift happened after 3 hours of use.
+For initial alignment, a dedicated Sync screen allows users to manually synchronize two units before a chat or audio session. This one-time manual step initializes both counters to the same value, after which the hardware timer maintains alignment automatically.
 
 == Channel Access (CSMA)
 
-Because several packet types share the link, ordinary transmissions use Carrier
-Sense Multiple Access: before sending, the radio briefly listens, if the channel is busy it backs off a random 1 to 10 ms
-and retries (up to five times). Real-time audio is the one exception, it
-deliberately bypasses CSMA backoff because millisecond stalls would starve the
-audio pipeline.
+Since multiple packet types share the link, ordinary transmissions use Carrier Sense Multiple Access (CSMA): before transmitting, the radio briefly listens, if the channel is busy, it backs off for a random 1-10 ms interval and retries, up to five times. Real-time audio is the exception it deliberately bypasses CSMA backoff because millisecond level stalls would starve the audio pipeline.
 
 
 
@@ -311,20 +267,18 @@ cetz.canvas({
   let h = 0.7
 
   // visual widths, not actual byte counts
-  let w1 = 3
-  let w2 = 3
+  let w1 = 2.5
+  let w2 = 2.5
   let w3 = 3
-  let w4 = 2
-  let w5 = 5
+  let w4 = 5
 
   let x = 0
 
   for (label, width, size) in (
     (`src_node_id`, w1, "1 Byte"),
     (`dst_node_id`, w2, "1 Byte"),
-    (`packet_type`, w3, "4 bits"),
-    (`fec`, w4, "12 bits"),
-    (`data`, w5, "28 Bytes"),
+    (`type + fec`, w3, "2 Bytes"),
+    (`data`, w4, "28 Bytes"),
   ) {
     rect((x, 0), (x + width, h))
     content((x + width/2, h/2), [#label])
@@ -332,13 +286,12 @@ cetz.canvas({
     x += width
   }
 }),
-caption: [Packet Structure]
+caption: [32-byte packet format, 2-byte header + 28-byte payload]
 )
 
-The `packet_type` and `fec` fields are packed together into a single 16-bit
-bit-field, keeping the header to exactly 4 bytes and leaving 28 bytes of payload.
-Addressing is by one-byte node ID, with `0xFF` reserved for broadcast. This is
-how, for example, an RF test ping or a sync beacon reaches every node at once.
+The 4-byte header contains two 1-byte address fields (`src_node_id` and `dst_node_id`) and a 2-byte
+bit-field packing `packet_type` (4 bits) with `fec` metadata (12 bits), leaving 28 bytes for payload.
+One-byte node IDs address packets, with `0xFF` reserved for broadcast. An RF test ping or sync beacon can thus reach all nodes simultaneously.
 
 #figure(
   ```cpp
@@ -350,26 +303,20 @@ how, for example, an RF test ping or a sync beacon reaches every node at once.
       uint8_t  data[28];          // payload (CRC in the last 2 bytes)
   };
   ```,
-  caption: [The single 32-byte frame; `packet_type` and `fec` are packed as
-  bit-fields so the header is just four bytes.],
+  caption: [C definition of the 32 byte packet: 4 byte header with bit packed fields + 28 byte payload],
   kind: raw,
   supplement: [Listing],
 ) <lst-packet>
 
 == The Payload Region and the FEC Convention
 
-A strict, project-wide convention governs the 28-byte `data` region so that the
-framing and the error-control layer never fight over the same bytes:
+A strict project-wide convention governs the 28-byte `data` region, ensuring the framing and error-control layers never overlap:
 
-- For protected packets, the last 2 bytes of `data` hold a CRC-16, leaving 26
-  user bytes. Reliable (ARQ) packets further spend the first 2 of those on a
-  sequence number, leaving 24 application bytes.
-- The 12-bit `fec` header field carries metadata only (which scheme, and the
-  XOR block/slot identifiers), never the CRC itself, which would not fit in 12
-  bits.
+- For protected packets, the last 2 bytes of `data` hold a CRC-16, leaving 26 user bytes
+- Reliable (ARQ) packets further use the first 2 of those 26 bytes for a sequence number, leaving 24 application bytes
+- The 12-bit `fec` header field carries metadata only (scheme type, XOR block/slot identifiers), never the CRC itself, which would not fit in 12 bits
 
-This single, fixed layout is what allows one `read()` path to demultiplex six
-different packet types and hand each application exactly its own payload.
+This single fixed layout allows one `read()` path to demultiplex all six packet types and deliver the correct payload to each application.
 
 
 // ===========================================================================
@@ -377,30 +324,13 @@ different packet types and hand each application exactly its own payload.
 // ===========================================================================
 = Forward Error Correction
 
-The radio's own CRC and auto-acknowledgement are disabled. Error control is
-handled entirely by our own FEC subsystem, which lives inside the transceiver.
-This was a conscious choice: different traffic types need very different
-guarantees, and doing it ourselves lets us pick the right mechanism per type. The
-subsystem combines three complementary mechanisms.
+The radio's built in CRC and auto-acknowledgement are disabled, error control is handled entirely by the custom FEC subsystem in the transceiver. This design choice allows tailoring the error control mechanism to each traffic type, as different applications require different guarantees. The subsystem combines three complementary mechanisms.
 
 == The Three Mechanisms
 
-- *CRC-16-CCITT (detection)*: Every protected packet carries a 16-bit checksum in
-  the last two payload bytes. On receipt the CRC is recomputed; a mismatch means
-  corruption and the packet is silently dropped. This turns a
-  noisy link into a "clean or nothing" one.
-- *ARQ (retransmission)*: For chat, which is infrequent but must be exact, the
-  sender attaches a sequence number, transmits, and waits for an ACK,
-  retransmitting on a 200 ms timeout up to three times. The
-  receiver only ACKs a message after it has safely buffered it, so a lost frame is
-  re-sent rather than falsely confirmed. ARQ guarantees delivery but blocks
-  briefly, so it is used only where latency does not matter.
-- *XOR block code (forward recovery)*: For audio, which is real-time and where
-  waiting for a retransmission is pointless, the sender groups every four data
-  packets and transmits a fifth parity packet equal to their bitwise XOR. If any
-  one of the five packets in a block is lost, the receiver reconstructs it by
-  XOR-ing the four it did receive. Losses are
-  repaired in the forward direction only.
+- *CRC-16-CCITT (detection)*: Every protected packet carries a 16-bit checksum in the last two payload bytes. On receipt, the CRC is recomputed, a mismatch indicates corruption and the packet is silently dropped. This transforms a noisy link into a clean-or-nothing channel.
+- *ARQ (retransmission)*: For chat, which is infrequent but must be exact, the sender attaches a sequence number, transmits, and waits for an ACK, retransmitting on a 200 ms timeout up to three times. The receiver only ACKs after safely buffering the message, ensuring lost frames are re-sent rather than falsely confirmed. ARQ guarantees delivery but blocks briefly, so it is used only where latency is not critical.
+- *XOR block code (forward recovery)*: For audio, which is real-time and cannot tolerate retransmission delays, the sender groups every four data packets and transmits a fifth parity packet equal to their bitwise XOR. If any one packet in a block is lost, the receiver reconstructs it by XOR-ing the four packets it did receive. Loss recovery operates in the forward direction only.
 
 #figure(
   ```cpp
@@ -412,8 +342,7 @@ subsystem combines three complementary mechanisms.
   if (++count >= FEC_XOR_BLOCK_SIZE)
       transmitAudioPacket(parityPkt);   // lets RX rebuild one lost packet
   ```,
-  caption: [The XOR parity is just the bitwise XOR of the four data packets; the
-  receiver rebuilds any single missing packet from the other four plus the parity.],
+  caption: [XOR forward error correction: parity packet is the bitwise XOR of four data packets, enabling reconstruction of any single lost packet],
   kind: raw,
   supplement: [Listing],
 ) <lst-xor>
@@ -435,68 +364,42 @@ Each packet type is matched to the mechanism that fits its needs:
   [TEST], [#sym.crossmark (raw)], [#sym.crossmark], [#sym.crossmark], [Must measure real bit errors.],
 )
 
-The TEST packet is sent completely raw on purpose, so the BER screen measures the
-true error rate of the channel rather than a CRC-cleaned version of it.
+TEST packets are sent completely raw so the BER screen measures the true channel error rate rather than a CRC-filtered version.
 
 #figure(
   image("diagrams/xor-fec.png", width: 92%),
-  caption: [XOR block forward error correction: one lost packet per block of four
-  is reconstructed from the parity packet.],
+  caption: [XOR block forward error correction: one lost packet per block of four is reconstructed from the parity packet],
   kind: image,
 ) <fig-xor>
 
-#figure(
-  image("diagrams/arq.png", width: 52%),
-  caption: [ARQ exchange for reliable chat delivery, including retransmission on
-  timeout.],
-  kind: image,
-) <fig-arq>
 
 // ===========================================================================
 // CHAPTER 6: AUDIO
 // ===========================================================================
 = Real-Time Audio
 
-The audio mode turns the pair into a half-duplex walkie-talkie: one node talks,
-the other listens, and the Select button toggles the role. It is the most demanding feature,
-because live voice must coexist with channel hopping that interrupts the link
-every 500 ms.
+The audio mode turns the pair into a half-duplex walkie-talkie: one node talks, the other listens, and the Select button toggles the role. It is the most demanding feature because live voice must coexist with channel hopping that interrupts the link every 500 ms.
 
 == Format and Capture
 
-Voice is captured from the INMP441 as 8 kHz, 8-bit mono PCM,
-deliberately low-fidelity, which is enough for intelligible speech and keeps the
-data rate low. The microphone is read over I#super[2]S without blocking. Each sample is then conditioned in software: a running DC-offset
-estimate is subtracted (an exponential moving average), a gain factor is applied,
-and the result is clamped to 8 bits. Twenty-four conditioned samples
-(3 ms of audio) are packed into one `AudioPayload`, which is
-sized to exactly fill the 26-byte protected user region.
+Voice is captured from the INMP441 as 8 kHz, 8-bit mono PCM—deliberately low-fidelity but sufficient for intelligible speech while keeping the data rate low at 64 kbps. The microphone is read over I2S without blocking. Each sample is then conditioned in software: a running DC-offset estimate (exponential moving average) is subtracted, a gain factor is applied, and the result is clamped to 8 bits. Twenty-four conditioned samples (3 ms of audio) are packed into one `AudioPayload`, exactly filling the 26-byte protected user region.
 
 == Transport and Playback
 
-Each payload is handed to `audioTx`, which wraps it with CRC + XOR-block FEC and
-transmits it (skipping CSMA backoff, as noted earlier). On the listening side,
-recovered payloads come back through `audioRx` and are written into a large ring
-buffer that absorbs network jitter; samples are then drained to the DAC (GPIO25)
-at a precise 8 kHz using `micros()` timing. No extra hardware
-timer is needed, since the hop counter already owns one.
+Each payload is passed to `audioTx`, which wraps it with CRC + XOR-block FEC and transmits it, bypassing CSMA backoff. On the listening side, recovered payloads arrive through `audioRx` and are written into a large ring buffer that absorbs network jitter. Samples are then drained to the DAC (GPIO25) at a precise 8 kHz using `micros()` timing. No additional hardware timer is needed because the hop counter already uses one.
 
 == Non-Blocking Pipeline
 
-The whole chain (capture, condition, transmit, receive, play) is a set of short
-cooperative steps pumped from the main loop. Nothing blocks, so FHSS hopping
-continues uninterrupted while audio flows. The XOR FEC matters most here: at a hop
-boundary the in-flight packet is often lost, and the block code transparently
-rebuilds it, smoothing what would otherwise be an audible click every half second.
+The entire chain—capture, conditioning, transmission, reception, and playback—consists of short cooperative steps pumped from the main loop. Since nothing blocks, FHSS hopping continues uninterrupted while audio flows. The XOR FEC is particularly important here: at a hop boundary, the in-flight packet is often lost, but the block code transparently rebuilds it, smoothing what would otherwise be an audible click every 500 ms.
 
 #figure(
   grid(
     columns: (1fr, 1fr),
     gutter: 14pt,
-    figure(image("diagrams/audio-pipe-transmit.png", width: 59%)),
-    figure(image("diagrams/audio-pipe-receive.png", width: 57%)),
+    image("diagrams/audio-pipe-transmit.png", width: 75%),
+    image("diagrams/audio-pipe-receive.png", width: 75%),
   ),
-  caption: [The non-blocking real-time audio pipeline, from microphone to speaker.],
+  caption: [Non-blocking real-time audio pipeline from microphone to speaker],
 ) <fig-audio>
 
 // ===========================================================================
@@ -506,24 +409,17 @@ rebuilds it, smoothing what would otherwise be an audible click every half secon
 
 == Text Confidentiality
 
-Chat text is passed through a lightweight XOR stream cipher (a repeating 4-byte
-key) before transmission and reversed on receipt, so the message is not sent in
-clear over the air. Combined with the unknown hopping sequence, which already
-makes the traffic hard to capture coherently, this gives a basic layer of
-confidentiality appropriate to the platform. It is worth noting that this is
-obfuscation, not strong cryptography; a stronger, authenticated cipher would be a
-clear improvement in terms of security.
+Chat text passes through a lightweight XOR stream cipher before transmission and is decrypted on receipt, protecting the message over the air. Combined with the unknown hopping sequence—which already makes the traffic difficult to capture—this provides a basic layer of confidentiality. It is important to note that this is obfuscation rather than strong cryptography. A stronger, authenticated cipher such as AES would be a clear security improvement.
 
 == Applications
 
-Four screens exercise the stack:
+Five screens exercise the stack:
 
-- *Chat*: encrypted text, sent point-to-point (reliable: ARQ + CRC) or broadcast
-  (CRC only), shown on a scrolling OLED log.
-- *Audio*: the half-duplex walkie-talkie of Chapter 6.
-- *Pong*: a two-player real-time game whose paddle/ball updates validate
-  low-latency bidirectional traffic over the hopping link.
-- *RF / BER Test*: a diagnostic mode (next chapter).
+- *Sync*: manually synchronizes two units by aligning their hop counters before a communication session
+- *Chat*: encrypted text, sent point-to-point (reliable: ARQ + CRC) or broadcast (CRC only), displayed on a scrolling OLED log
+- *Audio*: half-duplex walkie-talkie
+- *Pong*: a two-player real-time game where paddle/ball updates validate low-latency bidirectional traffic over the hopping link
+- *RF/BER Test*: a diagnostic mode that measures raw channel error rates
 
 // ===========================================================================
 // CHAPTER 8: TESTING & RESULTS
@@ -532,35 +428,24 @@ Four screens exercise the stack:
 
 == Method
 
-Two instruments are built into the firmware. The RF/BER test sends raw,
-known-pattern packets (`0xAB` repeated) at a fixed rate; the receiver echoes them
-back, and both sides count sent. received, echoed and corrupt packets. Because
-TEST packets bypass the FEC, this measures the true channel error rate. Second,
-the transceiver keeps live FEC counters (CRC pass/fail, ARQ
-sent/retransmitted/acked/failed, and audio blocks/recovered/lost), printed as a
-throttled serial summary. Together they let us separate raw link quality from what
-the FEC layer recovers.
+Two diagnostic instruments are built into the firmware. First, the RF/BER test sends raw, known-pattern packets (repeated `0xAB`) at a fixed rate, the receiver echoes them back, and both sides count sent, received, echoed, and corrupt packets. Since TEST packets bypass FEC, this measures the true channel error rate. Second, the transceiver maintains live FEC counters (CRC pass/fail, ARQ sent/retransmitted/acked/failed, and audio blocks/recovered/lost), printed as a throttled serial summary. Together, these tools separate raw link quality from FEC recovery performance.
 
 == Results
 
-To isolate the effect of frequency hopping, the built-in RF/BER test was run twice
-on the same two boards and the same channel set: once with FHSS enabled, and once
-with hopping disabled so both nodes stayed on a single fixed channel. Over 1000
-transmitted packets in each run, the difference is clear:
+To isolate the effect of frequency hopping, the RF/BER test was run twice on the same hardware and channel set: once with FHSS enabled, and once with hopping disabled so both nodes remained on a single fixed channel. Over 1000 transmitted packets in each configuration, the difference is clear:
 
 #figure(
   table(
     columns: (2.2fr, 1fr, 1.4fr),
     inset: 7pt,
     align: (left, center, center),
-    [*Metric*], [*FHSS*], [*No FHSS* \ (fixed channel)],
+    [*Metric*], [*FHSS*], [*No FHSS (fixed channel)*],
     [Packets sent], [1000], [1000],
-    [Packets delivered], [854 (85.4%)], [480 (48%)],
-    [Packets lost], [146 (14.6%)], [520 (52%)],
-    [Bit-error rate (BER)], [1%], [19%],
+    [Packets delivered], [854 (85.4%)], [480 (48.0%)],
+    [Packets lost], [146 (14.6%)], [520 (52.0%)],
+    [Bit-error rate (BER) (%)], [1], [19],
   ),
-  caption: [Link reliability with and without frequency hopping (RF/BER test, same
-  hardware and channel set).],
+  caption: [Link reliability with and without frequency hopping (RF/BER test, same hardware and channel set)],
   kind: table,
 ) <fig-results>
 
@@ -576,43 +461,20 @@ the link still struggles (e.g. after clock drift).]
 // ===========================================================================
 = Challenges and How We Tackled Them
 
-- *Synchronization*: The most bothersome challenge we faced. After many failed implementations we settle on a timer based synchronization where nodes deliberately send a sync packet and synchronize together.
-- *pong*: buggy
-- *audio*: We had a problem with the audio pipeline being slow causing overlap between sampled signals and slow transmission. Our solution was to rework the DAC buffer and drop old samples, and not use CSMA when transmitting audio as this was also part of the problem.
-// - *I#super[2]S microphone returned silence.* On our boards the ESP32 legacy I#super[2]S
-//   `ONLY_LEFT` channel format reads all zeros, a known quirk. We capture in stereo
-//   and select the correct DMA slot in software (`AUDIO_I2S_SLOT_INDEX`); this cost a
-//   lot of debugging time and is now documented so it is not rediscovered.
+- *Synchronization*: The most significant challenge. After evaluating various approaches, we implemented timer-driven hopping with manual initial alignment. A dedicated Sync screen aligns counters before communication, after which the hardware timer maintains synchronization automatically.
+- *Pong*: TBD
+- *Audio pipeline*: initially too slow, causing signal overlap and transmission delays. The solution involved reworking the DAC buffer to drop old samples and bypassing CSMA backoff for audio packets.
+- *CSMA stalling real-time audio*: The 1-10 ms CSMA backoff, suitable for chat, starved the audio pipeline and caused choppy playback. Audio transmission now bypasses backoff. Collisions are acceptable because the mode is half-duplex and FEC-protected.
 
-// - *Audio glitching at hop boundaries.* Each 500 ms hop tends to
-//   drop the in-flight packet. The XOR block code rebuilds one loss per block of
-//   four, and a sizeable RX ring buffer absorbs the jitter, which together smooth the
-//   audible clicks.
-
-- *CSMA stalling real-time audio*: The 1 to 10 ms CSMA backoff,
-  fine for chat, starved the audio pipeline and caused choppy playback. Audio
-  transmission was made to bypass backoff; collisions are tolerated because the
-  mode is half-duplex and already FEC-protected.
-
-// - *A subtle CSMA / BER interaction.* A short carrier-sense settling delay that
-//   seemed correct in theory broke the BER screen in practice; we identified it
-//   empirically and removed it for the test path. It is flagged in the code as a
-//   known, not-fully-explained interaction: honest engineering rather than a silent
-//   fudge.
-
-// - *Fitting everything in 32 bytes.* Reserving CRC and sequence bytes inside the
-//   fixed 28-byte payload forced the chat text length and the audio frame size to be
-//   re-derived so nothing overflowed the single on-air frame.
-
-= Open issues
-- Synchronization between nodes is currently done manually through a dedicated application, theoretically it should be possible to make a protocol for automatic synchronization between nodes but we have dropped it due to time constraints.
-- The nRF24L01+ is not a reliable radio module, we actually had to buy 3, and test the entire stock the store had to get 1 working module. In addition, to problem with transmission where sometimes the module would just drop the packets. 
+= Limitations and Future Work
+- Synchronization requires manual initial alignment via the Sync screen. Automatic synchronization was considered but deferred due to time constraints.
+- The nRF24L01+ modules proved unreliable. We had to test multiple units to find functional ones, and they occasionally drop packets.
 // ===========================================================================
 // CONCLUSION
 // ===========================================================================
 = Conclusion
 
-FELCOM proves jam-resistant text and voice communication can be built on inexpensive hardware. Six-channel FHSS simplifies synchronization (manual once, then stable), while layered FEC (CRC, ARQ, XOR) and a non-blocking design ensure reliability. Hardware limitations, notably the nRF24L01+'s inconsistencies and a lightweight XOR cipher, are acknowledged. Future work could add AES encryption and automated sync, turning this prototype into a resilient off-grid solution.
+FELCOM demonstrates that jam-resistant text and voice communication can be built on inexpensive hardware. Six-channel FHSS with timer-driven synchronization (manual initial alignment, then stable) provides the foundation, while layered FEC (CRC, ARQ, XOR) and a non-blocking design ensure reliability. Hardware limitations—notably nRF24L01+ inconsistencies and the lightweight XOR cipher—are acknowledged. Future work could add AES encryption and automated synchronization, turning this prototype into a resilient off-grid communication solution.
 
 // ===========================================================================
 // REFERENCES
@@ -627,7 +489,7 @@ FELCOM proves jam-resistant text and voice communication can be built on inexpen
 + Espressif Systems, _ESP32 Technical Reference Manual_ and _ESP32 Series
   Datasheet_.
 + InvenSense (TDK), _INMP441 Omnidirectional Microphone with Bottom Port and
-  I#super[2]S Digital Output, Datasheet_.
+  I2S Digital Output, Datasheet_.
 + Texas Instruments, _LM386 Low Voltage Audio Power Amplifier, Datasheet_.
 + TMRh20, _RF24: Optimized Driver for nRF24L01(+) on Arduino & Raspberry Pi_
   (open-source library).
