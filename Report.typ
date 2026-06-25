@@ -195,6 +195,10 @@ The complete schematic and the routed PCB are shown below.
 ) <fig-pcb>
 
 // TODO: INSERT PICTURE OF ASSEMBLED PRODUCT
+#figure(
+  image("hardware/imgs/FELCOM assembled.jpeg", width: 80%),
+  caption: [Image of 2 FELCOM units fully assembled]
+)
 
 == Firmware Architecture
 
@@ -595,6 +599,9 @@ the link still struggles (e.g. after clock drift).]
 //   fixed 28-byte payload forced the chat text length and the audio frame size to be
 //   re-derived so nothing overflowed the single on-air frame.
 
+= Open issues
+- Synchornization is manual
+- nRF24L01+ is not a realiable radio module
 // ===========================================================================
 // CONCLUSION
 // ===========================================================================
@@ -616,6 +623,7 @@ network.
 // ===========================================================================
 // REFERENCES
 // ===========================================================================
+#pagebreak(weak: true)
 = References
 
 #set enum(numbering: "[1]")
