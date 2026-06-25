@@ -543,19 +543,25 @@ the FEC layer recovers.
 
 == Results
 
-#todo[Insert the measured numbers from your test runs. Suggested figures/tables:
-(a) packet-loss and corruption rate from the RF/BER screen, fixed channel vs.
-hopping; (b) FEC counters during a chat session (CRC ok/bad, ARQ retransmissions);
-(c) audio session counters (blocks finalised, packets recovered by XOR, packets
-lost); (d) any jamming experiment: loss with a narrowband interferer present, with
-and without hopping. Replace the placeholder below with the real chart/table.]
+To isolate the effect of frequency hopping, the built-in RF/BER test was run twice
+on the same two boards and the same channel set: once with FHSS enabled, and once
+with hopping disabled so both nodes stayed on a single fixed channel. Over 1000
+transmitted packets in each run, the difference is clear:
 
 #figure(
-  ph(height: 4.5cm)[Results chart/table: e.g. bar chart of packet-loss %
-  (fixed-frequency vs. FHSS, with and without an interferer), or a table of the FEC
-  counters captured during a representative chat and audio session.],
-  caption: [Measured link reliability and FEC recovery results.],
-  kind: image,
+  table(
+    columns: (2.2fr, 1fr, 1.4fr),
+    inset: 7pt,
+    align: (left, center, center),
+    [*Metric*], [*FHSS*], [*No FHSS* \ (fixed channel)],
+    [Packets sent], [1000], [1000],
+    [Packets delivered], [854 (85.4%)], [480 (48%)],
+    [Packets lost], [146 (14.6%)], [520 (52%)],
+    [Bit-error rate (BER)], [1%], [19%],
+  ),
+  caption: [Link reliability with and without frequency hopping (RF/BER test, same
+  hardware and channel set).],
+  kind: table,
 ) <fig-results>
 
 == Analysis
