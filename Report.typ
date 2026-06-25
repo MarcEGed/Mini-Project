@@ -214,12 +214,12 @@ FEC, audio) independent and testable:
 - *Application layer*: chat, audio walkie-talkie, Pong, and the RF/BER test, each
   with its own payload struct and OLED screen.
 
-A deliberate design decision shapes everything above the radio: the main loop is
+The main loop is
 cooperative and non-blocking. Channel hopping, UI input, message handling and audio capture/playback are all short
 steps pumped from a single `loop()`. A hardware timer increments a free-running
 counter every 500 ms, the loop reads it and hops when it
 changes. Because no step blocks, hopping always happens on time even while audio
-is streaming, which is the central constraint the whole architecture is built
+is streaming, which is the main constraint the whole architecture is built
 around.
 
 #figure(
@@ -289,7 +289,7 @@ chat or audio session. Clock drift has been deemed as acceptable, from testing n
 Because several packet types share the link, ordinary transmissions use Carrier
 Sense Multiple Access: before sending, the radio briefly listens, if the channel is busy it backs off a random 1 to 10 ms
 and retries (up to five times). Real-time audio is the one exception, it
-deliberately bypasses CSMA backoff, because millisecond stalls would starve the
+deliberately bypasses CSMA backoff because millisecond stalls would starve the
 audio pipeline.
 
 
@@ -458,8 +458,8 @@ true error rate of the channel rather than a CRC-cleaned version of it.
 // ===========================================================================
 = Real-Time Audio
 
-The audio mode turns the pair into a half-duplex *walkie-talkie*: one node TALKS,
-the other LISTENS, and Select toggles the role. It is the most demanding feature,
+The audio mode turns the pair into a half-duplex *walkie-talkie*: one node talks,
+the other listens, and the Select button toggles the role. It is the most demanding feature,
 because live voice must coexist with channel hopping that interrupts the link
 every 500 ms.
 
@@ -535,7 +535,7 @@ Four screens exercise the stack:
 
 Two instruments are built into the firmware. The *RF/BER test* sends raw,
 known-pattern packets (`0xAB` repeated) at a fixed rate; the receiver echoes them
-back, and both sides count sent / received / echoed / corrupt packets. Because
+back, and both sides count sent. received, echoed and corrupt packets. Because
 TEST packets bypass the FEC, this measures the *true* channel error rate. Second,
 the transceiver keeps live *FEC counters* (CRC pass/fail, ARQ
 sent/retransmitted/acked/failed, and audio blocks/recovered/lost), printed as a
