@@ -1,0 +1,13 @@
+flowchart TD
+    subgraph TALK["Talking node (capture and transmit)"]
+        direction TB
+        MIC["INMP441 mic"] --> I2S["I2S read (non-blocking)"]
+        I2S --> DSP["DC removal, gain, 8-bit clamp"]
+        DSP --> PACK["pack 24 samples = 3 ms"]
+        PACK --> TX["audioTx: CRC + XOR FEC"]
+    end
+    RADIO(["nRF24 FHSS link"])
+
+    TALK --> RADIO
+
+    style RADIO fill:#eef,stroke:#88a

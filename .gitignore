@@ -1,3 +1,4 @@
 .history
 .DS_Store
 hardware/fabrication_pcb/Mini\ Project-backups
+*.lck

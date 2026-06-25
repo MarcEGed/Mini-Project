@@ -1,6 +1,7 @@
 // Local (vendored) copy of the starry-ulfg template, modified so chapters flow
 // instead of each starting on a new page. See template/starry-ulfg.typ.
 #import "template/starry-ulfg.typ": starry-ulfg
+#import "@preview/cetz:0.5.2"
 
 #show: starry-ulfg.with(
   document-title: "FELCOM: A Secure Handheld Communication Device",
@@ -153,13 +154,12 @@ The project set out to:
 The system is built on the Espressif ESP32 (dual-core, hardware timers, I#super[2]S
 and DAC peripherals) paired with the Nordic nRF24L01+, a 2.4 GHz
 GFSK transceiver that performs modulation in hardware and exposes 125
-software-selectable 1 MHz channels making FHSS possible. 
+selectable 1 MHz channels making FHSS possible. 
 
 // Add a text that reference this image, also update this image and remove the no network infrastructure box.
 #figure(
   image("diagrams/context.png", width: 100%),
-  caption: [System context: two handhelds communicating directly, with no
-  network infrastructure, over a frequency-hopping link.],
+  caption: [Two handhelds communicating directly over a frequency-hopping link.],
   kind: image,
 ) <fig-context>
 
@@ -176,24 +176,15 @@ Each FELCOM unit is identical and runs the same firmware (only a one-byte
 The core is an ESP32 DevKit V1. Around it:
 
 
-#figure(table(
-  columns: (auto, 1fr),
-  inset: 5pt,
-  align: (left, left),
-  [*Block*], [*Role and interface*],
-  [nRF24L01+], [2.4 GHz GFSK radio; SPI; CE = GPIO4, CSN = GPIO5; 1 Mbps, max PA level.],
-  [INMP441], [I#super[2]S MEMS microphone (voice in); SCK = GPIO13, WS = GPIO16, SD = GPIO17.],
-  [DAC, LM386, speaker], [Voice out; ESP32 DAC1 = GPIO25 into an audio amplifier.],
-  [OLED 0.96" (SSD1306)], [128#sym.times#h(0pt)64 status/UI display; I#super[2]C, SDA = GPIO21, SCL = GPIO22.],
-  [Buttons], [Navigation: Up/Down/Select/Back (GPIO32/33/27/14).],
-),
+#figure(
+  image("diagrams/overview.png"),
 caption: [*ADD CAPTION*]
 )
 
 The complete schematic and the routed PCB are shown below.
 
 #figure(
-  image("hardware/imgs/schematic.png", width: 80%),
+  image("hardware/imgs/schematic.png"),
   caption: [Full hardware schematic of a FELCOM unit (ESP32, nRF24L01+, INMP441,
   audio amplifier, OLED and controls).],
 ) <fig-schematic>
@@ -202,6 +193,8 @@ The complete schematic and the routed PCB are shown below.
   image("hardware/imgs/pcb.png", width: 48%),
   caption: [The custom-designed FELCOM PCB layout.],
 ) <fig-pcb>
+
+// TODO: INSERT PICTURE OF ASSEMBLED PRODUCT
 
 == Firmware Architecture
 
@@ -226,7 +219,7 @@ is streaming, which is the central constraint the whole architecture is built
 around.
 
 #figure(
-  image("diagrams/architecture.png", width: 60%),
+  image("diagrams/architecture.png", width: 70%),
   caption: [Layered firmware architecture and the non-blocking main loop.],
   kind: image,
 ) <fig-arch>
@@ -282,23 +275,10 @@ classic approaches and their failure modes:
   apart, and once they diverge they may never re-align on their own.
 
 Both also share the *new-node* problem: a unit powering on has no idea where in
-the schedule the network currently is. Our solution combines timer-based hopping
-(for steady-state simplicity) with an explicit discovery/resync packet:
+the schedule the network currently is. 
 
-- *`ND_SYNC`* (node-discovery / sync) packets carry the sender's current counter
-  value. A joining or drifted node listens, then adopts the counter it hears,
-  snapping its own timer into alignment. If it hears nothing within a timeout it
-  assumes it is alone and forms a new network at counter 0.
-- A small hop-set means a new node has to wait at most a few hops before it lands
-  on the same channel as an active node, so worst-case join latency is bounded and
-  short.
-
-In practice the two units are aligned from the dedicated *SYNC* screen before a
-chat or audio session; because the clocks drift, a re-sync is occasionally needed
-during long sessions. `ND_SYNC` is sent *raw* (no CRC, no retransmission) on
-purpose: synchronization is how nodes *recover* from desync, so it must be as
-forgiving as possible. A slightly corrupted sync packet is better than a dropped
-one.
+In practice the two units are aligned from the dedicated sync screen before a
+chat or audio session. Clock drift has been deemed as acceptable, from testing no clock drift happened after 3 hours of use.
 
 == Channel Access (CSMA)
 
@@ -308,18 +288,7 @@ and retries (up to five times). Real-time audio is the one exception, it
 deliberately bypasses CSMA backoff, because millisecond stalls would starve the
 audio pipeline.
 
-#figure(
-  image("diagrams/hop-timeline.png", width: 80%),
-  caption: [Timer-driven hopping schedule across the six channels and re-alignment
-  via an `ND_SYNC` packet.],
-  kind: image,
-) <fig-hop-timeline>
 
-#figure(
-  image("diagrams/sync-fsm.png", width: 58%),
-  caption: [Node synchronization and network-join state machine.],
-  kind: image,
-) <fig-sync-fsm>
 
 // ===========================================================================
 // CHAPTER 4: PACKET PROTOCOL / DATA LINK
@@ -330,17 +299,36 @@ Every transmission, regardless of type, is a fixed *32-byte* frame, the maximum
 nRF24L01+ payload. A single frame format multiplexing all traffic is what lets
 text, voice and control share one hopping radio.
 
-== Frame Format
+== Packet Format
+#figure(
+cetz.canvas({
+  import cetz.draw: *
 
-#table(
-  columns: (auto, auto, 1fr),
-  inset: 5pt,
-  [*Field*], [*Size*], [*Purpose*],
-  [`src_node_id`], [1 byte], [Sender's node ID.],
-  [`dst_node_id`], [1 byte], [Destination ID; `0xFF` = broadcast to all.],
-  [`packet_type`], [4 bits], [PONG, CHAT, AUDIO, ND_SYNC, TEST or ACK.],
-  [`fec`], [12 bits], [FEC metadata: scheme(4) | XOR block id(4) | slot index(4).],
-  [`data`], [28 bytes], [Payload region.],
+  let h = 0.7
+
+  // visual widths, not actual byte counts
+  let w1 = 3
+  let w2 = 3
+  let w3 = 3
+  let w4 = 2
+  let w5 = 5
+
+  let x = 0
+
+  for (label, width, size) in (
+    (`src_node_id`, w1, "1 Byte"),
+    (`dst_node_id`, w2, "1 Byte"),
+    (`packet_type`, w3, "4 bits"),
+    (`fec`, w4, "12 bits"),
+    (`data`, w5, "28 Bytes"),
+  ) {
+    rect((x, 0), (x + width, h))
+    content((x + width/2, h/2), [#label])
+    content((x + width/2, -0.4), [#size])
+    x += width
+  }
+}),
+caption: [Packet Structure]
 )
 
 The `packet_type` and `fec` fields are packed together into a single 16-bit
@@ -380,11 +368,6 @@ framing and the error-control layer never fight over the same bytes:
 This single, fixed layout is what allows one `read()` path to demultiplex six
 different packet types and hand each application exactly its own payload.
 
-#figure(
-  image("diagrams/packet.png", width: 100%),
-  caption: [The 32-byte frame and the two payload layouts (protected and ARQ).],
-  kind: image,
-) <fig-packet>
 
 // ===========================================================================
 // CHAPTER 5: FEC
@@ -504,9 +487,13 @@ boundary the in-flight packet is often lost, and the block code transparently
 rebuilds it, smoothing what would otherwise be an audible click every half second.
 
 #figure(
-  image("diagrams/audio-pipeline.png", width: 82%),
+  grid(
+    columns: (1fr, 1fr),
+    gutter: 14pt,
+    figure(image("diagrams/audio-pipe-transmit.png", width: 59%)),
+    figure(image("diagrams/audio-pipe-receive.png", width: 57%)),
+  ),
   caption: [The non-blocking real-time audio pipeline, from microphone to speaker.],
-  kind: image,
 ) <fig-audio>
 
 // ===========================================================================
@@ -580,59 +567,33 @@ the link still struggles (e.g. after clock drift).]
 // ===========================================================================
 = Challenges and How We Tackled Them
 
-- *Synchronization vs. clock drift.* Pure timer hopping drifts; pure
-  reception-based hopping stalls on a missed packet. We combined timer hopping
-  with raw `ND_SYNC` resync packets and a small hop-set to bound join time, and
-  expose a manual SYNC screen for long sessions.
+- *Synchronization*: The most bothersome challenge we faced. After many failed implementations we settle on a timer based synchronization where nodes deliberately send a sync packet and synchronize together.
+- *pong* buggy
+- *audio* inaudible.
+// - *I#super[2]S microphone returned silence.* On our boards the ESP32 legacy I#super[2]S
+//   `ONLY_LEFT` channel format reads all zeros, a known quirk. We capture in stereo
+//   and select the correct DMA slot in software (`AUDIO_I2S_SLOT_INDEX`); this cost a
+//   lot of debugging time and is now documented so it is not rediscovered.
 
-- *I#super[2]S microphone returned silence.* On our boards the ESP32 legacy I#super[2]S
-  `ONLY_LEFT` channel format reads all zeros, a known quirk. We capture in stereo
-  and select the correct DMA slot in software (`AUDIO_I2S_SLOT_INDEX`); this cost a
-  lot of debugging time and is now documented so it is not rediscovered.
-
-- *Audio glitching at hop boundaries.* Each 500 ms hop tends to
-  drop the in-flight packet. The XOR block code rebuilds one loss per block of
-  four, and a sizeable RX ring buffer absorbs the jitter, which together smooth the
-  audible clicks.
+// - *Audio glitching at hop boundaries.* Each 500 ms hop tends to
+//   drop the in-flight packet. The XOR block code rebuilds one loss per block of
+//   four, and a sizeable RX ring buffer absorbs the jitter, which together smooth the
+//   audible clicks.
 
 - *CSMA stalling real-time audio.* The 1 to 10 ms CSMA backoff,
   fine for chat, starved the audio pipeline and caused choppy playback. Audio
   transmission was made to bypass backoff; collisions are tolerated because the
   mode is half-duplex and already FEC-protected.
 
-- *A subtle CSMA / BER interaction.* A short carrier-sense settling delay that
-  seemed correct in theory broke the BER screen in practice; we identified it
-  empirically and removed it for the test path. It is flagged in the code as a
-  known, not-fully-explained interaction: honest engineering rather than a silent
-  fudge.
+// - *A subtle CSMA / BER interaction.* A short carrier-sense settling delay that
+//   seemed correct in theory broke the BER screen in practice; we identified it
+//   empirically and removed it for the test path. It is flagged in the code as a
+//   known, not-fully-explained interaction: honest engineering rather than a silent
+//   fudge.
 
-- *Fitting everything in 32 bytes.* Reserving CRC and sequence bytes inside the
-  fixed 28-byte payload forced the chat text length and the audio frame size to be
-  re-derived so nothing overflowed the single on-air frame.
-
-// ===========================================================================
-// CHAPTER 10: DISTRIBUTION OF WORK
-// ===========================================================================
-= Distribution of Work
-
-#table(
-  columns: (auto, auto, 1fr),
-  inset: 5pt,
-  align: horizon,
-  [*Member*], [*Primary focus*], [*Contributions*],
-  [Charbel Assaad], [RF & Protocol],
-  [FHSS implementation and the custom packet protocol; BER monitoring; support on
-  UI integration.],
-  [Marc Gedeon], [Audio & Encryption],
-  [Real-time audio capture/streaming, the FEC layer it rides on, and text
-  encryption; control firmware; protocol and FHSS testing.],
-  [Yorgo Hassabou], [Hardware & UI],
-  [PCB design, component integration and power; OLED menus and the debug
-  interface; firmware support and FHSS testing.],
-)
-
-All three members contributed to integration, testing and debugging across the
-whole system.
+// - *Fitting everything in 32 bytes.* Reserving CRC and sequence bytes inside the
+//   fixed 28-byte payload forced the chat text length and the audio frame size to be
+//   re-derived so nothing overflowed the single on-air frame.
 
 // ===========================================================================
 // CONCLUSION

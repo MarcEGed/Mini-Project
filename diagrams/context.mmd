@@ -2,11 +2,9 @@ flowchart LR
     A["FELCOM Node A<br/>text + voice"]
     B["FELCOM Node B<br/>text + voice"]
     J(["Jammer / Eavesdropper"])
-    N["No network infrastructure<br/>(no towers, no router, no SIM)"]
 
     A <==>|"FHSS link, 2.4 GHz<br/>channel hops every 500 ms"| B
     J -.->|"sees only scattered bursts;<br/>cannot follow the hops"| A
     J -.-> B
 
-    style N fill:#eef,stroke:#88a,stroke-dasharray:4 3
     style J fill:#fde,stroke:#a66

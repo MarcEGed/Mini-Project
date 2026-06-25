@@ -1,0 +1,6 @@
+graph LR
+    nRF24["Radio module\n (nRF24L01+)"] --- ESP32
+    INMP441["Microphone"] --- ESP32
+    DAC["Audio amp\n Speaker"] --- ESP32
+    ESP32[ESP32] --- OLED["Screen"]
+    ESP32 --- BUT["Buttons"]

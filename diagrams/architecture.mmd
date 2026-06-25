@@ -1,13 +1,13 @@
 flowchart TB
     subgraph APP["Application layer"]
         direction LR
-        Chat[Chat]
+        Sync[Sync]
         Audio[Audio]
+        Chat[Chat]
         Pong[Pong]
         Test[BER Test]
-        UI[OLED UI]
     end
-    subgraph XCVR["Transceiver layer (owns the radio)"]
+    subgraph XCVR["Transceiver layer"]
         direction LR
         FEC["FEC: CRC, ARQ, XOR"]
         CSMA[CSMA channel access]
@@ -15,7 +15,7 @@ flowchart TB
     end
     PHY["Physical layer: RF24 driver and nRF24L01+"]
     TIMER["Hardware timer counter<br/>(+1 every 500 ms)"]
-    LOOP["Non-blocking loop() pumps every block"]
+    LOOP["Main loop"]
 
     APP --> XCVR
     XCVR --> PHY

@@ -32,7 +32,7 @@
   // Equations settings
   set math.equation(numbering: "(1)")
   // Headings settings
-  set heading(numbering: "C1.1-", supplement: [Chapter])
+  set heading(numbering: "1.1", supplement: [Chapter])
   // MODIFIED (local copy): chapters flow instead of each starting a new page,
   // to keep the report near the required length. Original was:
   //   show heading.where(level: 1): it => { pagebreak(weak: true); it }
