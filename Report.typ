@@ -178,7 +178,7 @@ The core is an ESP32 DevKit V1. Around it:
 
 #figure(
   image("diagrams/overview.png"),
-caption: [*ADD CAPTION*]
+caption: [Block diagram of FELCOM]
 )
 
 The complete schematic and the routed PCB are shown below.
@@ -278,7 +278,7 @@ classic approaches and their failure modes:
 - *Hop on a timer*: robust moment to moment, but the two clocks slowly drift
   apart, and once they diverge they may never re-align on their own.
 
-Both also share the *new-node* problem: a unit powering on has no idea where in
+Both also share the new node problem: a unit powering on has no idea where in
 the schedule the network currently is. 
 
 In practice the two units are aligned from the dedicated sync screen before a
@@ -299,7 +299,7 @@ audio pipeline.
 // ===========================================================================
 = The Packet Protocol and Data Link
 
-Every transmission, regardless of type, is a fixed *32-byte* frame, the maximum
+Every transmission, regardless of type, is a fixed 32-byte frame, the maximum
 nRF24L01+ payload. A single frame format multiplexing all traffic is what lets
 text, voice and control share one hopping radio.
 
@@ -361,11 +361,10 @@ how, for example, an RF test ping or a sync beacon reaches every node at once.
 A strict, project-wide convention governs the 28-byte `data` region so that the
 framing and the error-control layer never fight over the same bytes:
 
-- The frame size *never* changes; it is always 32 bytes on air.
-- For *protected* packets, the last 2 bytes of `data` hold a CRC-16, leaving 26
+- For protected packets, the last 2 bytes of `data` hold a CRC-16, leaving 26
   user bytes. Reliable (ARQ) packets further spend the first 2 of those on a
   sequence number, leaving 24 application bytes.
-- The 12-bit `fec` header field carries *metadata only* (which scheme, and the
+- The 12-bit `fec` header field carries metadata only (which scheme, and the
   XOR block/slot identifiers), never the CRC itself, which would not fit in 12
   bits.
 
@@ -378,7 +377,7 @@ different packet types and hand each application exactly its own payload.
 // ===========================================================================
 = Forward Error Correction
 
-The radio's own CRC and auto-acknowledgement are *disabled*; error control is
+The radio's own CRC and auto-acknowledgement are disabled. Error control is
 handled entirely by our own FEC subsystem, which lives inside the transceiver.
 This was a conscious choice: different traffic types need very different
 guarantees, and doing it ourselves lets us pick the right mechanism per type. The
@@ -386,20 +385,20 @@ subsystem combines three complementary mechanisms.
 
 == The Three Mechanisms
 
-- *CRC-16-CCITT (detection).* Every protected packet carries a 16-bit checksum in
+- *CRC-16-CCITT (detection)*: Every protected packet carries a 16-bit checksum in
   the last two payload bytes. On receipt the CRC is recomputed; a mismatch means
   corruption and the packet is silently dropped. This turns a
   noisy link into a "clean or nothing" one.
-- *ARQ (retransmission).* For chat, which is infrequent but must be exact, the
-  sender attaches a sequence number, transmits, and *waits for an ACK*,
+- *ARQ (retransmission)*: For chat, which is infrequent but must be exact, the
+  sender attaches a sequence number, transmits, and waits for an ACK,
   retransmitting on a 200 ms timeout up to three times. The
   receiver only ACKs a message after it has safely buffered it, so a lost frame is
   re-sent rather than falsely confirmed. ARQ guarantees delivery but blocks
   briefly, so it is used only where latency does not matter.
-- *XOR block code (forward recovery).* For audio, which is real-time and where
+- *XOR block code (forward recovery)*: For audio, which is real-time and where
   waiting for a retransmission is pointless, the sender groups every four data
-  packets and transmits a fifth *parity* packet equal to their bitwise XOR. If any
-  *one* of the five packets in a block is lost, the receiver reconstructs it by
+  packets and transmits a fifth parity packet equal to their bitwise XOR. If any
+  one of the five packets in a block is lost, the receiver reconstructs it by
   XOR-ing the four it did receive. Losses are
   repaired in the forward direction only.
 
@@ -433,7 +432,7 @@ Each packet type is matched to the mechanism that fits its needs:
   [PONG], [#sym.checkmark], [#sym.crossmark], [#sym.crossmark], [Frequent; ARQ would backlog.],
   [ACK], [#sym.checkmark], [#sym.crossmark], [#sym.crossmark], [Small control packet.],
   [ND_SYNC], [#sym.crossmark (raw)], [#sym.crossmark], [#sym.crossmark], [Must stay forgiving for resync.],
-  [TEST], [#sym.crossmark (raw)], [#sym.crossmark], [#sym.crossmark], [Must measure *real* bit errors.],
+  [TEST], [#sym.crossmark (raw)], [#sym.crossmark], [#sym.crossmark], [Must measure real bit errors.],
 )
 
 The TEST packet is sent completely raw on purpose, so the BER screen measures the
@@ -458,20 +457,20 @@ true error rate of the channel rather than a CRC-cleaned version of it.
 // ===========================================================================
 = Real-Time Audio
 
-The audio mode turns the pair into a half-duplex *walkie-talkie*: one node talks,
+The audio mode turns the pair into a half-duplex walkie-talkie: one node talks,
 the other listens, and the Select button toggles the role. It is the most demanding feature,
 because live voice must coexist with channel hopping that interrupts the link
 every 500 ms.
 
 == Format and Capture
 
-Voice is captured from the INMP441 as *8 kHz, 8-bit mono PCM*,
+Voice is captured from the INMP441 as 8 kHz, 8-bit mono PCM,
 deliberately low-fidelity, which is enough for intelligible speech and keeps the
 data rate low. The microphone is read over I#super[2]S without blocking. Each sample is then conditioned in software: a running DC-offset
 estimate is subtracted (an exponential moving average), a gain factor is applied,
 and the result is clamped to 8 bits. Twenty-four conditioned samples
 (3 ms of audio) are packed into one `AudioPayload`, which is
-sized to *exactly* fill the 26-byte protected user region.
+sized to exactly fill the 26-byte protected user region.
 
 == Transport and Playback
 
@@ -507,7 +506,7 @@ rebuilds it, smoothing what would otherwise be an audible click every half secon
 
 == Text Confidentiality
 
-Chat text is passed through a lightweight *XOR stream cipher* (a repeating 4-byte
+Chat text is passed through a lightweight XOR stream cipher (a repeating 4-byte
 key) before transmission and reversed on receipt, so the message is not sent in
 clear over the air. Combined with the unknown hopping sequence, which already
 makes the traffic hard to capture coherently, this gives a basic layer of
@@ -523,7 +522,7 @@ Four screens exercise the stack:
   (CRC only), shown on a scrolling OLED log.
 - *Audio*: the half-duplex walkie-talkie of Chapter 6.
 - *Pong*: a two-player real-time game whose paddle/ball updates validate
-  low-latency *bidirectional* traffic over the hopping link.
+  low-latency bidirectional traffic over the hopping link.
 - *RF / BER Test*: a diagnostic mode (next chapter).
 
 // ===========================================================================
@@ -533,11 +532,11 @@ Four screens exercise the stack:
 
 == Method
 
-Two instruments are built into the firmware. The *RF/BER test* sends raw,
+Two instruments are built into the firmware. The RF/BER test sends raw,
 known-pattern packets (`0xAB` repeated) at a fixed rate; the receiver echoes them
 back, and both sides count sent. received, echoed and corrupt packets. Because
-TEST packets bypass the FEC, this measures the *true* channel error rate. Second,
-the transceiver keeps live *FEC counters* (CRC pass/fail, ARQ
+TEST packets bypass the FEC, this measures the true channel error rate. Second,
+the transceiver keeps live FEC counters (CRC pass/fail, ARQ
 sent/retransmitted/acked/failed, and audio blocks/recovered/lost), printed as a
 throttled serial summary. Together they let us separate raw link quality from what
 the FEC layer recovers.
@@ -572,7 +571,7 @@ the link still struggles (e.g. after clock drift).]
 = Challenges and How We Tackled Them
 
 - *Synchronization*: The most bothersome challenge we faced. After many failed implementations we settle on a timer based synchronization where nodes deliberately send a sync packet and synchronize together.
-- *pong* buggy
+- *pong*: buggy
 - *audio*: We had a problem with the audio pipeline being slow causing overlap between sampled signals and slow transmission. Our solution was to rework the DAC buffer and drop old samples, and not use CSMA when transmitting audio as this was also part of the problem.
 // - *I#super[2]S microphone returned silence.* On our boards the ESP32 legacy I#super[2]S
 //   `ONLY_LEFT` channel format reads all zeros, a known quirk. We capture in stereo
@@ -584,7 +583,7 @@ the link still struggles (e.g. after clock drift).]
 //   four, and a sizeable RX ring buffer absorbs the jitter, which together smooth the
 //   audible clicks.
 
-- *CSMA stalling real-time audio.* The 1 to 10 ms CSMA backoff,
+- *CSMA stalling real-time audio*: The 1 to 10 ms CSMA backoff,
   fine for chat, starved the audio pipeline and caused choppy playback. Audio
   transmission was made to bypass backoff; collisions are tolerated because the
   mode is half-duplex and already FEC-protected.
