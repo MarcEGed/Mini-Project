@@ -573,7 +573,7 @@ the link still struggles (e.g. after clock drift).]
 
 - *Synchronization*: The most bothersome challenge we faced. After many failed implementations we settle on a timer based synchronization where nodes deliberately send a sync packet and synchronize together.
 - *pong* buggy
-- *audio* inaudible.
+- *audio*: We had a problem with the audio pipeline being slow causing overlap between sampled signals and slow transmission. Our solution was to rework the DAC buffer and drop old samples, and not use CSMA when transmitting audio as this was also part of the problem.
 // - *I#super[2]S microphone returned silence.* On our boards the ESP32 legacy I#super[2]S
 //   `ONLY_LEFT` channel format reads all zeros, a known quirk. We capture in stereo
 //   and select the correct DMA slot in software (`AUDIO_I2S_SLOT_INDEX`); this cost a
@@ -600,25 +600,14 @@ the link still struggles (e.g. after clock drift).]
 //   re-derived so nothing overflowed the single on-air frame.
 
 = Open issues
-- Synchornization is manual
-- nRF24L01+ is not a realiable radio module
+- Synchronization between nodes is currently done manually through a dedicated application, theoretically it should be possible to make a protocol for automatic synchronization between nodes but we have dropped it due to time constraints.
+- The nRF24L01+ is not a reliable radio module, we actually had to buy 3, and test the entire stock the store had to get 1 working module. In addition, to problem with transmission where sometimes the module would just drop the packets. 
 // ===========================================================================
 // CONCLUSION
 // ===========================================================================
 = Conclusion
 
-FELCOM shows that resilient, jam-resistant, infrastructure-free communication,
-both text and live voice, can be built on inexpensive, commodity hardware. The
-working system hops across six interference-free channels under software control,
-keeps two nodes aligned on a shared hopping schedule, multiplexes several traffic
-types over one 32-byte frame, and matches a forward-error-correction mechanism to
-each: CRC detection everywhere, ARQ for exact chat delivery, and an XOR block code
-that repairs real-time audio without retransmission. The non-blocking architecture
-is what ties it together, letting voice stream while the radio keeps hopping.
-Natural extensions include a stronger, authenticated cipher (such as AES) applied
-to both text and audio, automatic clock-drift correction to remove the manual
-re-sync step, and a move beyond the point-to-point link toward a small multi-node
-network.
+FELCOM proves jam-resistant text and voice communication can be built on inexpensive hardware. Six-channel FHSS simplifies synchronization (manual once, then stable), while layered FEC (CRC, ARQ, XOR) and a non-blocking design ensure reliability. Hardware limitations, notably the nRF24L01+'s inconsistencies and a lightweight XOR cipher, are acknowledged. Future work could add AES encryption and automated sync, turning this prototype into a resilient off-grid solution.
 
 // ===========================================================================
 // REFERENCES
