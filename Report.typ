@@ -449,12 +449,47 @@ To isolate the effect of frequency hopping, the RF/BER test was run twice on the
   kind: table,
 ) <fig-results>
 
+Beyond the raw channel, the three error-control layers were measured from the transceiver's live FEC counters during representative sessions: a text chat (which uses CRC + ARQ) and a real-time audio call (which uses CRC + XOR block recovery). The values below are cumulative totals across both nodes.
+
+#figure(
+  table(
+    columns: (2.4fr, 1fr),
+    inset: 7pt,
+    align: (left, center),
+    [*ARQ (reliable chat)*], [*Value*],
+    [Reliable messages sent], [32],
+    [Delivered (ACK received)], [29 (90.6%)],
+    [Failed after full retransmission], [3 (9.4%)],
+    [Retransmissions triggered], [9],
+    [Corrupt messages delivered (caught by CRC)], [0],
+  ),
+  caption: [ARQ reliability over a chat session (CRC + ARQ), both nodes combined],
+  kind: table,
+) <tbl-arq>
+
+#figure(
+  table(
+    columns: (2.4fr, 1fr),
+    inset: 7pt,
+    align: (left, center),
+    [*XOR + CRC (real-time audio)*], [*Value*],
+    [XOR blocks processed], [9,255],
+    [Packets rebuilt by XOR parity], [516],
+    [Packets lost (unrecoverable)], [17,161],
+    [Corrupt packets dropped by CRC], [2,027],
+    [Packets passing CRC], [23,798],
+  ),
+  caption: [Forward error correction over an audio session (CRC + XOR block code), both nodes combined],
+  kind: table,
+) <tbl-xor>
+
 == Analysis
 
-#todo[Write 1 to 2 paragraphs interpreting the numbers once measured: how much
-loss FHSS avoids under interference, how often XOR FEC rebuilds audio packets
-(especially at hop boundaries), how many ARQ retransmissions chat needs, and where
-the link still struggles (e.g. after clock drift).]
+Frequency hopping is the single biggest contributor to link reliability. On the fixed channel, more than half of the packets (52%) were lost and the bit-error rate reached 19%, because any persistent interferer on that one frequency corrupts every transmission. Spreading the same traffic across six hopping channels cut the loss to 14.6% and the BER to 1%, since only the few hops that coincide with an interferer are affected. Hopping turns a barely usable link into a usable one.
+
+The error-control layers then act on top of the channel, and each behaves as designed. ARQ recovered transient losses through retransmission and delivered 29 of 32 chat messages; the three that failed did so only after exhausting their full retransmission budget, so they were reported as failed rather than silently dropped. CRC delivered zero corrupt chat messages, and during the much noisier audio session it detected and discarded 2,027 corrupted packets, keeping garbage out of the speaker.
+
+The XOR block code shows both its value and its limit. It rebuilt 516 audio packets with no retransmission at all, which is exactly the forward recovery that real-time voice needs. However, 17,161 packets were lost beyond recovery: the parity packet can only repair one erasure per block of four, and the un-buffered audio link tends to drop several packets at each 500 ms hop boundary, so most damaged blocks lose more than one slot and cannot be reconstructed. This matches the audible glitching noted among the challenges, and points to a larger receive buffer or a stronger code as the clearest next improvement.
 
 // ===========================================================================
 // CHAPTER 9: CHALLENGES
