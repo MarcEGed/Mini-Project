@@ -497,7 +497,7 @@ The XOR block code shows both its value and its limit. It rebuilt 516 audio pack
 = Challenges and How We Tackled Them
 
 - *Synchronization*: The most significant challenge. After evaluating various approaches, we implemented timer-driven hopping with manual initial alignment. A dedicated Sync screen aligns counters before communication, after which the hardware timer maintains synchronization automatically.
-- *Pong*: TBD
+- *Pong*: was initially running on an extremely low framerate due to having to process packets while rendering to the screen at the same time. The fix was simple, transmit packets less often since the most important aspect is the effect of the nodes on the ball position, not the paddle's position.
 - *Audio pipeline*: initially too slow, causing signal overlap and transmission delays. The solution involved reworking the DAC buffer to drop old samples and bypassing CSMA backoff for audio packets.
 - *CSMA stalling real-time audio*: The 1-10 ms CSMA backoff, suitable for chat, starved the audio pipeline and caused choppy playback. Audio transmission now bypasses backoff. Collisions are acceptable because the mode is half-duplex and FEC-protected.
 
