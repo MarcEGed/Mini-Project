@@ -351,24 +351,27 @@ The radio's built in CRC and auto-acknowledgement are disabled, error control is
 
 Each packet type is matched to the mechanism that fits its needs:
 
-#table(
-  columns: (auto, auto, auto, auto, 1fr),
-  inset: 5pt,
-  align: (left, center, center, center, left),
-  [*Type*], [*CRC*], [*ARQ*], [*XOR*], [*Rationale*],
-  [CHAT], [#sym.checkmark], [#sym.checkmark], [#sym.crossmark], [Infrequent; must be exact.],
-  [AUDIO], [#sym.checkmark], [#sym.crossmark], [#sym.checkmark], [Real-time; forward recovery only.],
-  [PONG], [#sym.checkmark], [#sym.crossmark], [#sym.crossmark], [Frequent; ARQ would backlog.],
-  [ACK], [#sym.checkmark], [#sym.crossmark], [#sym.crossmark], [Small control packet.],
-  [ND_SYNC], [#sym.crossmark (raw)], [#sym.crossmark], [#sym.crossmark], [Must stay forgiving for resync.],
-  [TEST], [#sym.crossmark (raw)], [#sym.crossmark], [#sym.crossmark], [Must measure real bit errors.],
+#figure(
+  table(
+    columns: (auto, auto, auto, auto, 1fr),
+    inset: 5pt,
+    align: (left, center, center, center, left),
+    [*Type*], [*CRC*], [*ARQ*], [*XOR*], [*Rationale*],
+    [CHAT], [#sym.checkmark], [#sym.checkmark], [#sym.crossmark], [Infrequent; must be exact.],
+    [AUDIO], [#sym.checkmark], [#sym.crossmark], [#sym.checkmark], [Real-time; forward recovery only.],
+    [PONG], [#sym.checkmark], [#sym.crossmark], [#sym.crossmark], [Frequent; ARQ would backlog.],
+    [ACK], [#sym.checkmark], [#sym.crossmark], [#sym.crossmark], [Small control packet.],
+    [ND_SYNC], [#sym.crossmark (raw)], [#sym.crossmark], [#sym.crossmark], [Must stay forgiving for resync.],
+    [TEST], [#sym.crossmark (raw)], [#sym.crossmark], [#sym.crossmark], [Must measure real bit errors.],
+  ),
+  caption: [Error Handling Strategy for Each Packet Type]
 )
 
 TEST packets are sent completely raw so the BER screen measures the true channel error rate rather than a CRC-filtered version.
 
 #figure(
-  image("diagrams/xor-fec.png", width: 92%),
-  caption: [XOR block forward error correction: one lost packet per block of four is reconstructed from the parity packet],
+  image("diagrams/xor-fec.png", width: 84%),
+  caption: [XOR block forward error correction packet reconstruction],
   kind: image,
 ) <fig-xor>
 
@@ -386,11 +389,11 @@ Voice is captured from the INMP441 as 8 kHz, 8-bit mono PCM—deliberately low-f
 
 == Transport and Playback
 
-Each payload is passed to `audioTx`, which wraps it with CRC + XOR-block FEC and transmits it, bypassing CSMA backoff. On the listening side, recovered payloads arrive through `audioRx` and are written into a large ring buffer that absorbs network jitter. Samples are then drained to the DAC (GPIO25) at a precise 8 kHz using `micros()` timing. No additional hardware timer is needed because the hop counter already uses one.
+Each payload is passed to `audioTx`, which wraps it with CRC + XOR-block FEC and transmits it, bypassing CSMA backoff. On the listening side, recovered payloads arrive through `audioRx` and are written into a large ring buffer that absorbs network jitter. Samples are then drained to the DAC at a precise 8 kHz using `micros()` timing. No additional hardware timer is needed because the hop counter already uses one.
 
 == Non-Blocking Pipeline
 
-The entire chain—capture, conditioning, transmission, reception, and playback—consists of short cooperative steps pumped from the main loop. Since nothing blocks, FHSS hopping continues uninterrupted while audio flows. The XOR FEC is particularly important here: at a hop boundary, the in-flight packet is often lost, but the block code transparently rebuilds it, smoothing what would otherwise be an audible click every 500 ms.
+The entire chain capture, conditioning, transmission, reception, and playback—consists of short cooperative steps pumped from the main loop. Since nothing blocks, FHSS hopping continues uninterrupted while audio flows. The XOR FEC is particularly important here: at a hop boundary, the in-flight packet is often lost, but the block code transparently rebuilds it, smoothing what would otherwise be an audible click every 500 ms.
 
 #figure(
   grid(
@@ -409,7 +412,7 @@ The entire chain—capture, conditioning, transmission, reception, and playback�
 
 == Text Confidentiality
 
-Chat text passes through a lightweight XOR stream cipher before transmission and is decrypted on receipt, protecting the message over the air. Combined with the unknown hopping sequence—which already makes the traffic difficult to capture—this provides a basic layer of confidentiality. It is important to note that this is obfuscation rather than strong cryptography. A stronger, authenticated cipher such as AES would be a clear security improvement.
+Chat text passes through a lightweight XOR stream cipher before transmission and is decrypted on receipt, protecting the message over the air. Combined with the unknown hopping sequence this provides a basic layer of confidentiality. It is important to note that this is obfuscation rather than strong cryptography. A stronger, authenticated cipher such as AES would be a clear security improvement.
 
 == Applications
 
