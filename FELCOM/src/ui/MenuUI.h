@@ -4,12 +4,12 @@
 #include <stdint.h>
 
 enum MenuModeSelection : uint8_t {
-    MenuChat = 0,
-    MenuPong = 1,
-    MenuRFTest = 2,
-    MenuSyncTest = 3,
-    MenuAudio = 4,
-    MenuAbout = 5,
+    MenuSyncTest,
+    MenuAudio,
+    MenuChat,
+    MenuPong,
+    MenuRFTest,
+    MenuAbout,
 };
 
 void menuUIInitDisplay();

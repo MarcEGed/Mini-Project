@@ -50,25 +50,12 @@ const uint8_t HOPPING_CHANNELS[HOPPING_CHANNELS_SIZE] = {110, 111, 112,
 #define XOR_KEY {0xAA, 0x3F, 0x12, 0x55}
 #define XOR_KEY_LEN 4
 
-// IMPORTANT: for debug purposes
-// 1 for rotary encoder input
-// 0 for joystick input
-#define USE_BUTTONS 1
-
-#if defined(USE_BUTTONS) && USE_BUTTONS
 // button inputs
 #define BTN_UP_PIN 32
 #define BTN_DOWN_PIN 33
 #define BTN_SELECT_PIN 27
 #define BTN_BACK_PIN 14
-#else
 
-// Joystick config
-#define JOYSTICK_Y_PIN 35
-#define JOYSTICK_SW_PIN 33
-#define JOYSTICK_DEADZONE 200
-#define JOYSTICK_Y_CENTER 1730
-#endif
 
 // Screen config
 #define I2C_ADDR 0x3C
