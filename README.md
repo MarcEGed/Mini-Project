@@ -2,6 +2,8 @@
 
 FELCOM is a secure handheld communication device built around the ESP32 and nRF24L01+. The firmware supports frequency-hopping communication, text chat, voice, synchronization, and RF testing.
 
+![FELCOM system overview](docs/diagrams/overview.png)
+
 ## Repository layout
 
 - [`FELCOM/`](FELCOM/) - PlatformIO firmware project.
@@ -32,6 +34,8 @@ The two communicating boards must run the same firmware. Use the Sync Test scree
 ## Hardware
 
 The main hardware design is in [`hardware/fabrication_pcb/`](hardware/fabrication_pcb/). Consult the hardware documentation before assembling a board. Pin assignments and firmware configuration are in [`FELCOM/include/config.h`](FELCOM/include/config.h).
+
+![Assembled FELCOM device](hardware/imgs/FELCOM%20assembled.jpeg)
 
 ## Report
 
