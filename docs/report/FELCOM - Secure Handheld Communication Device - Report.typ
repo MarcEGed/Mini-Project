@@ -1,6 +1,6 @@
 // Local (vendored) copy of the starry-ulfg template, modified so chapters flow
-// instead of each starting on a new page. See template/starry-ulfg.typ.
-#import "template/starry-ulfg.typ": starry-ulfg
+// instead of each starting on a new page. See ../../template/starry-ulfg.typ.
+#import "../../template/starry-ulfg.typ": starry-ulfg
 #import "@preview/cetz:0.5.2"
 
 #show: starry-ulfg.with(
@@ -149,7 +149,7 @@ The system uses the Espressif ESP32 (dual-core, hardware timers, I2S, and DAC pe
 GFSK transceiver that performs modulation in hardware and exposes 125 selectable 1 MHz channels, enabling FHSS.
 
 #figure(
-  image("diagrams/context.png", width: 100%),
+  image("../diagrams/context.png", width: 100%),
   caption: [Two handhelds communicating directly over a frequency-hopping link],
   kind: image,
 ) <fig-context>
@@ -168,7 +168,7 @@ The core is an ESP32 DevKit V1. Around it:
 
 
 #figure(
-  image("diagrams/overview.png"),
+  image("../diagrams/overview.png"),
   caption: [Block diagram of FELCOM],
   kind: image,
 )
@@ -176,19 +176,19 @@ The core is an ESP32 DevKit V1. Around it:
 The complete schematic and routed PCB are shown below.
 
 #figure(
-  image("hardware/imgs/schematic.png"),
+  image("../../hardware/imgs/schematic.png"),
   caption: [Full hardware schematic of a FELCOM unit (ESP32, nRF24L01+, INMP441, audio amplifier, OLED and controls)],
   kind: image,
 ) <fig-schematic>
 
 #figure(
-  image("hardware/imgs/pcb.png", width: 48%),
+  image("../../hardware/imgs/pcb.png", width: 48%),
   caption: [Custom-designed FELCOM PCB layout],
   kind: image,
 ) <fig-pcb>
 
 #figure(
-  image("hardware/imgs/FELCOM assembled.jpeg", width: 80%),
+  image("../../hardware/imgs/FELCOM assembled.jpeg", width: 80%),
   caption: [Two FELCOM units fully assembled],
   kind: image,
 )
@@ -205,7 +205,7 @@ The firmware is organized into clear layers, keeping each block (FHSS, framing, 
 The main loop uses a cooperative, non-blocking design. Channel hopping, UI input, message handling, and audio capture/playback are all short steps pumped from a single `loop()`. A hardware timer increments a free-running counter every 500 ms, the loop reads it and hops when it changes. Since no step blocks, hopping always occurs on time, even while audio streams. This is the main constraint driving the architecture.
 
 #figure(
-  image("diagrams/architecture.png", width: 70%),
+  image("../diagrams/architecture.png", width: 70%),
   caption: [Layered firmware architecture and non-blocking main loop],
   kind: image,
 ) <fig-arch>
@@ -370,7 +370,7 @@ Each packet type is matched to the mechanism that fits its needs:
 TEST packets are sent completely raw so the BER screen measures the true channel error rate rather than a CRC-filtered version.
 
 #figure(
-  image("diagrams/xor-fec.png", width: 84%),
+  image("../diagrams/xor-fec.png", width: 84%),
   caption: [XOR block forward error correction packet reconstruction],
   kind: image,
 ) <fig-xor>
@@ -399,8 +399,8 @@ The entire chain capture, conditioning, transmission, reception, and playback—
   grid(
     columns: (1fr, 1fr),
     gutter: 14pt,
-    image("diagrams/audio-pipe-transmit.png", width: 75%),
-    image("diagrams/audio-pipe-receive.png", width: 75%),
+    image("../diagrams/audio-pipe-transmit.png", width: 75%),
+    image("../diagrams/audio-pipe-receive.png", width: 75%),
   ),
   caption: [Non-blocking real-time audio pipeline from microphone to speaker],
 ) <fig-audio>

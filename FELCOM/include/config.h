@@ -47,7 +47,7 @@ const uint8_t HOPPING_CHANNELS[HOPPING_CHANNELS_SIZE] = {110, 111, 112,
 #define MSG_MAX_TEXT 18
 
 // Encryption Config
-#define XOR_KEY {0xAA, 0x3F, 0x12, 0x55}
+#define XOR_KEY {0xBB, 0x7A, 0x67, 0x99}
 #define XOR_KEY_LEN 4
 
 // button inputs
